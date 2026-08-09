@@ -11,6 +11,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useCSSVariable } from "uniwind";
 
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
+import { useAppFonts } from "@/lib/fonts";
 import { AppProviders } from "@/providers/app-providers";
 
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -18,18 +19,22 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 });
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useAppFonts();
   const colorScheme = useAppColorScheme();
   const backgroundColor = useCSSVariable("--color-background");
   const statusBarStyle = colorScheme === "dark" ? "light" : "dark";
 
   useEffect(() => {
-    const frame = requestAnimationFrame(() => {
+    if (fontsLoaded || fontError) {
       SplashScreen.hideAsync().catch(() => {
         // Ignore if splash was already hidden.
       });
-    });
-    return () => cancelAnimationFrame(frame);
-  }, []);
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
 
   useEffect(() => {
     if (typeof backgroundColor === "string") {

@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "dependencies": {
     "@better-auth/expo": "^1.6.23",
+    "@expo-google-fonts/quicksand": "^0.4.1",
     "@expo/ui": "~57.0.7",
     "@hugeicons/core-free-icons": "^4.2.2",
     "@hugeicons/react-native": "^1.0.15",
