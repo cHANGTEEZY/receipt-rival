@@ -30,17 +30,14 @@ export default function RootLayout() {
         // Ignore if splash was already hidden.
       });
     }
-  }, [fontsLoaded, fontError]);
+    if (typeof backgroundColor === "string") {
+      void SystemUI.setBackgroundColorAsync(backgroundColor);
+    }
+  }, [fontsLoaded, fontError, backgroundColor]);
 
   if (!fontsLoaded && !fontError) {
     return null;
   }
-
-  useEffect(() => {
-    if (typeof backgroundColor === "string") {
-      void SystemUI.setBackgroundColorAsync(backgroundColor);
-    }
-  }, [backgroundColor]);
 
   return (
     <GestureHandlerRootView
