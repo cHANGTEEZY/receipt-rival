@@ -1,5 +1,3 @@
-import { Pressable } from "react-native";
-
 import { useSession } from "@/lib/auth-client";
 
 import {
@@ -7,6 +5,7 @@ import {
   type AvatarColor,
   type AvatarSize,
 } from "heroui-native/avatar";
+import HapticPressable from "./HapticButton";
 
 type AvatarVariant = "default" | "soft";
 type ProfileButtonSize = AvatarSize | "xlg";
@@ -88,7 +87,7 @@ export default function ProfileButton({
     .join(" ");
 
   return (
-    <Pressable
+    <HapticPressable
       accessibilityRole="button"
       accessibilityLabel="Profile"
       hitSlop={8}
@@ -114,6 +113,6 @@ export default function ProfileButton({
           <Avatar.Fallback />
         )}
       </Avatar>
-    </Pressable>
+    </HapticPressable>
   );
 }

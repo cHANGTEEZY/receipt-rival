@@ -5,7 +5,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
+import { useScreenBackgroundColor } from "@/hooks/use-navigation-theme";
 
 type ScreenProps = {
   children: React.ReactNode;
@@ -29,8 +29,7 @@ const Screen = ({
   testID,
 }: ScreenProps) => {
   const { top } = useSafeAreaInsets();
-  const scheme = useAppColorScheme();
-  const backgroundColor = scheme === "dark" ? "#1E1E20" : "#F7F7F8";
+  const backgroundColor = useScreenBackgroundColor();
 
   return (
     <SafeAreaView

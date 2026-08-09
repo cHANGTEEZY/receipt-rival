@@ -3,11 +3,16 @@ import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { ActivityIndicator, View } from "react-native";
 import { useCSSVariable } from "uniwind";
 
+import {
+  useScreenBackgroundColor,
+  useStackContentStyle,
+} from "@/hooks/use-navigation-theme";
 import { useSession } from "@/lib/auth-client";
 
 export default function AppLayout() {
   const { data: session, isPending } = useSession();
-  const backgroundColor = useCSSVariable("--color-background");
+  const backgroundColor = useScreenBackgroundColor();
+  const tabContentStyle = useStackContentStyle();
   const accentColor = useCSSVariable("--color-accent");
   const mutedColor = useCSSVariable("--color-muted");
 
@@ -18,8 +23,7 @@ export default function AppLayout() {
           flex: 1,
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor:
-            typeof backgroundColor === "string" ? backgroundColor : undefined,
+          backgroundColor,
         }}
       >
         <ActivityIndicator size="large" />
@@ -35,6 +39,12 @@ export default function AppLayout() {
     <NativeTabs
       minimizeBehavior="onScrollDown"
       disableTransparentOnScrollEdge
+      backgroundColor={backgroundColor}
+      unstable_nativeProps={
+        backgroundColor
+          ? { nativeContainerStyle: { backgroundColor } }
+          : undefined
+      }
       tintColor={typeof accentColor === "string" ? accentColor : undefined}
       iconColor={
         typeof mutedColor === "string"
@@ -57,6 +67,7 @@ export default function AppLayout() {
         name="home"
         disableTransparentOnScrollEdge
         disableAutomaticContentInsets
+        contentStyle={tabContentStyle}
       >
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
@@ -68,6 +79,7 @@ export default function AppLayout() {
         name="explore"
         disableTransparentOnScrollEdge
         disableAutomaticContentInsets
+        contentStyle={tabContentStyle}
       >
         <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
