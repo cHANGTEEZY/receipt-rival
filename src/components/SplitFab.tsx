@@ -23,6 +23,7 @@ const SplitFab = () => {
         label="Add Friend"
         onPress={() => {
           hapticSelection();
+          router.push("/(screens)/add-or-find-friends");
         }}
       />
       <Fab.Item

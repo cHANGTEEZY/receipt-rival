@@ -76,6 +76,18 @@ export default function AppLayout() {
         />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger
+        name="friends"
+        disableTransparentOnScrollEdge
+        disableAutomaticContentInsets
+        contentStyle={tabContentStyle}
+      >
+        <NativeTabs.Trigger.Label>Friends</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: "person", selected: "person.fill" }}
+          md={{ default: "person", selected: "person_2" }}
+        />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger
         name="explore"
         disableTransparentOnScrollEdge
         disableAutomaticContentInsets

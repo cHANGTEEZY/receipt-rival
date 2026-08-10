@@ -1,37 +1,49 @@
 import { api } from "@/lib/api-client";
-import { ENDPOINTS } from "@/api/endpoints";
-import type {
-  CreateUserRequest,
-  UpdateUserRequest,
-  User,
-  UsersListResponse,
-} from "@/api/types";
+import { ENDPOINTS } from "./endpoints";
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  image: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type FriendRequestStatus = null | "pending" | "accepted";
+export type FriendRequestDirection = "sent" | "received";
+
+export type SearchUser = User & {
+  friendRequestStatus: FriendRequestStatus;
+  friendshipId: string | null;
+  requestDirection: FriendRequestDirection | null;
+};
+
+type UsersListResponse = {
+  success: boolean;
+  data: SearchUser[];
+  requestId: string;
+};
+
+type GetUserByIdResponse = {
+  success: boolean;
+  data: User;
+  requestId: string;
+};
 
 export const usersApi = {
-  list: async (params?: { q?: string }) => {
-    const response = await api.get<UsersListResponse>(ENDPOINTS.users.list, {
-      params,
-    });
+  search: async (query: string) => {
+    const response = await api.get<UsersListResponse>(
+      ENDPOINTS.users.search(query),
+    );
     return response.data;
   },
 
   getById: async (id: string) => {
-    const response = await api.get<User>(ENDPOINTS.users.detail(id));
-    return response.data;
-  },
-
-  create: async (data: CreateUserRequest) => {
-    const response = await api.post<User>(ENDPOINTS.users.create, data);
-    return response.data;
-  },
-
-  update: async (id: string, data: UpdateUserRequest) => {
-    const response = await api.patch<User>(ENDPOINTS.users.update(id), data);
-    return response.data;
-  },
-
-  remove: async (id: string) => {
-    const response = await api.delete<void>(ENDPOINTS.users.delete(id));
+    const response = await api.get<GetUserByIdResponse>(
+      ENDPOINTS.users.detail(id),
+    );
     return response.data;
   },
 };
