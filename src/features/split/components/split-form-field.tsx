@@ -19,7 +19,7 @@ export const SplitField = forwardRef<TextInput, SplitFieldProps>(
   ({ label, error, description, isRequired, ...inputProps }, ref) => {
     return (
       <TextField isInvalid={Boolean(error)} isRequired={isRequired}>
-        <Label>{label}</Label>
+        {label ? <Label>{label}</Label> : null}
         <Input ref={ref} {...inputProps} />
         {description && !error ? (
           <Description>{description}</Description>

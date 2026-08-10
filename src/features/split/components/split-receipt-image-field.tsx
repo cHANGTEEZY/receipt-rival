@@ -1,3 +1,5 @@
+import { Camera01Icon, Image02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useState } from "react";
@@ -10,7 +12,6 @@ import { Description } from "heroui-native/description";
 import { FieldError } from "heroui-native/field-error";
 import { Label } from "heroui-native/label";
 import { TextField } from "heroui-native/text-field";
-import { Typography } from "heroui-native/text";
 
 import type { ReceiptImage } from "../data/split-form";
 
@@ -110,65 +111,54 @@ export function SplitReceiptImageField({
     <TextField isInvalid={Boolean(error)}>
       <Label>{label}</Label>
 
-      {value ? (
-        <View className="gap-3">
-          <View
-            className="overflow-hidden rounded-xl border border-border bg-surface-secondary"
-            style={{ borderCurve: "continuous" }}
-          >
+      <View className="flex-row items-center gap-3">
+        <View
+          className="size-14 items-center justify-center overflow-hidden rounded-xl border border-border bg-surface-secondary"
+          style={{ borderCurve: "continuous" }}
+        >
+          {value ? (
             <Image
               source={{ uri: value.uri }}
               accessibilityLabel="Selected receipt preview"
               contentFit="cover"
-              style={{ width: "100%", height: 200 }}
+              style={{ width: "100%", height: "100%" }}
             />
-          </View>
-
-          <Typography type="body-sm" color="muted" numberOfLines={1}>
-            {value.fileName ?? "Receipt image selected"}
-          </Typography>
-
-          <View className="flex-row gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              isDisabled={isPicking}
-              onPress={() => pickImage("library")}
-              className="flex-1"
-            >
-              <Button.Label>Replace</Button.Label>
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              isDisabled={isPicking}
-              onPress={() => onChange(null)}
-              className="flex-1"
-            >
-              <Button.Label>Remove</Button.Label>
-            </Button>
-          </View>
+          ) : (
+            <HugeiconsIcon icon={Image02Icon} size={20} strokeWidth={1.5} />
+          )}
         </View>
-      ) : (
-        <View className="gap-2">
+
+        <View className="flex-1 flex-row flex-wrap gap-2">
           <Button
             variant="secondary"
-            size="md"
+            size="sm"
             isDisabled={isPicking}
             onPress={() => pickImage("library")}
           >
-            <Button.Label>Choose from library</Button.Label>
+            <HugeiconsIcon icon={Image02Icon} size={14} strokeWidth={1.75} />
+            <Button.Label>{value ? "Replace" : "Find evidence"}</Button.Label>
           </Button>
           <Button
             variant="secondary"
-            size="md"
+            size="sm"
             isDisabled={isPicking}
             onPress={() => pickImage("camera")}
           >
-            <Button.Label>Take photo</Button.Label>
+            <HugeiconsIcon icon={Camera01Icon} size={14} strokeWidth={1.75} />
+            <Button.Label>Snap evidence</Button.Label>
           </Button>
+          {value ? (
+            <Button
+              variant="tertiary"
+              size="sm"
+              isDisabled={isPicking}
+              onPress={() => onChange(null)}
+            >
+              <Button.Label>Remove</Button.Label>
+            </Button>
+          ) : null}
         </View>
-      )}
+      </View>
 
       {description && !error ? (
         <Description>{description}</Description>

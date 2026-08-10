@@ -6,12 +6,38 @@ export const ENDPOINTS = {
     search: (query: string) => `${BASE_URL_ADD_ON}/users/search?query=${query}`,
   },
 
+  payments: {
+    create: `${BASE_URL_ADD_ON}/payments`,
+    list: `${BASE_URL_ADD_ON}/payments`,
+    detail: (paymentId: string) => `${BASE_URL_ADD_ON}/payments/${paymentId}`,
+    finalize: (paymentId: string) =>
+      `${BASE_URL_ADD_ON}/payments/${paymentId}/finalize`,
+    items: (paymentId: string) =>
+      `${BASE_URL_ADD_ON}/payments/${paymentId}/items`,
+    participants: (paymentId: string) =>
+      `${BASE_URL_ADD_ON}/payments/${paymentId}/participants`,
+    splits: {
+      list: (paymentId: string) =>
+        `${BASE_URL_ADD_ON}/payments/${paymentId}/splits`,
+      createEqual: (paymentId: string) =>
+        `${BASE_URL_ADD_ON}/payments/${paymentId}/splits/equal`,
+      createItemBased: (paymentId: string) =>
+        `${BASE_URL_ADD_ON}/payments/${paymentId}/splits/item-based`,
+      createPercentage: (paymentId: string) =>
+        `${BASE_URL_ADD_ON}/payments/${paymentId}/splits/percentage`,
+      createCustom: (paymentId: string) =>
+        `${BASE_URL_ADD_ON}/payments/${paymentId}/splits/custom`,
+    },
+  },
+
   splits: {
-    list: "/splits",
-    detail: (id: string) => `${BASE_URL_ADD_ON}/splits/${id}`,
-    create: "/splits",
-    update: (id: string) => `${BASE_URL_ADD_ON}/splits/${id}`,
-    delete: (id: string) => `${BASE_URL_ADD_ON}/splits/${id}`,
+    detail: (splitId: string) => `${BASE_URL_ADD_ON}/splits/${splitId}`,
+  },
+
+  me: {
+    payments: `${BASE_URL_ADD_ON}/me/payments`,
+    splitsOwedByMe: `${BASE_URL_ADD_ON}/me/splits/owed-by-me`,
+    splitsOwedToMe: `${BASE_URL_ADD_ON}/me/splits/owed-to-me`,
   },
 
   friends: {

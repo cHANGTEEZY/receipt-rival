@@ -22,7 +22,7 @@ type SplitDateFieldProps = {
   error?: string | null;
   description?: string;
   isRequired?: boolean;
-  minimumDate?: Date;
+  maximumDate?: Date;
 };
 
 export function SplitDateField({
@@ -32,7 +32,7 @@ export function SplitDateField({
   error,
   description,
   isRequired,
-  minimumDate,
+  maximumDate = new Date(),
 }: SplitDateFieldProps) {
   const [showAndroidPicker, setShowAndroidPicker] = useState(false);
 
@@ -71,7 +71,7 @@ export function SplitDateField({
               value={value}
               mode="date"
               display="default"
-              minimumDate={minimumDate}
+              maximumDate={maximumDate}
               onChange={handleChange}
             />
           ) : null}
@@ -82,7 +82,7 @@ export function SplitDateField({
             value={value}
             mode="date"
             display="compact"
-            minimumDate={minimumDate}
+            maximumDate={maximumDate}
             onChange={handleChange}
             themeVariant={Platform.OS === "ios" ? undefined : "light"}
           />

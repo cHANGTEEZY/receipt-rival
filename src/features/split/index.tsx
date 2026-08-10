@@ -1,22 +1,27 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { View } from "react-native";
 
+import { invalidatePaymentQueries } from "@/api/hooks/use-payments";
 import GoBackButton from "@/components/GoBackButton";
 import CollapsedLargeHeader from "@/components/layouts/CollapsedLargeHeader";
-import { logger } from "@/utils/logger";
 
 import SplitForm from "./components/SplitForm";
 import type { SplitFormSchema } from "./data/split-form";
+import { createSplit } from "./lib/create-split";
 
 export default function SplitPage() {
+  const queryClient = useQueryClient();
+
   const handleSubmit = async (values: SplitFormSchema) => {
-    logger.info("create split", values);
-    router.back();
+    const result = await createSplit(values);
+    invalidatePaymentQueries(queryClient, result.paymentId);
+    router.replace(`/(screens)/split/${result.paymentId}`);
   };
 
   return (
     <View className="flex-1 bg-background">
-      <CollapsedLargeHeader title="Create Split" leading={<GoBackButton />}>
+      <CollapsedLargeHeader title="Split the Damage" leading={<GoBackButton />}>
         <View className="px-4 pb-8 pt-2">
           <SplitForm onSubmit={handleSubmit} />
         </View>

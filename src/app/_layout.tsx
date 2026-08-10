@@ -59,8 +59,15 @@ export default function RootLayout() {
     >
       <SafeAreaProvider>
         <ThemeProvider value={navigationTheme}>
-          <HeroUINativeProvider>
-            <AppProviders>
+          {/*
+            AppProviders (QueryClientProvider) must wrap HeroUINativeProvider,
+            not the other way around: HeroUINativeProvider renders its
+            <PortalHost /> as a sibling *after* `children`, so anything
+            portaled through it (e.g. BottomSheet.Portal content) is only a
+            descendant of providers that wrap HeroUINativeProvider itself.
+          */}
+          <AppProviders>
+            <HeroUINativeProvider>
               <StatusBar style={statusBarStyle} animated />
               <Stack
                 screenOptions={{
@@ -73,8 +80,8 @@ export default function RootLayout() {
                 <Stack.Screen name="(app)" />
                 <Stack.Screen name="(screens)" />
               </Stack>
-            </AppProviders>
-          </HeroUINativeProvider>
+            </HeroUINativeProvider>
+          </AppProviders>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
