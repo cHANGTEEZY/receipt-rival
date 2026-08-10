@@ -1,18 +1,12 @@
-import {
-  Mail01Icon,
-  Notification03Icon,
-  StarIcon,
-} from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { View } from "react-native";
 
-import { Fab } from "@/components/fab";
-import { runHaptic } from "@/components/HapticButton";
 import CollapsingLargeHeader from "@/components/layouts/CollapsingLargeHeader";
 import MeshBackground from "@/components/MeshBackground";
 import ProfileButton from "@/components/ProfileButton";
 import { useSession } from "@/lib/auth-client";
 
+import SplitFab from "@/components/SplitFab";
 import { Card } from "heroui-native/card";
 import { Typography } from "heroui-native/text";
 
@@ -50,23 +44,7 @@ export default function Home() {
         </View>
       </CollapsingLargeHeader>
 
-      <Fab position="bottom-right">
-        <Fab.Item
-          icon={StarIcon}
-          label="Star"
-          onPress={() => runHaptic({ type: "selection" })}
-        />
-        <Fab.Item
-          icon={Mail01Icon}
-          label="Email"
-          onPress={() => runHaptic({ type: "selection" })}
-        />
-        <Fab.Item
-          icon={Notification03Icon}
-          label="Remind"
-          onPress={() => runHaptic({ type: "selection" })}
-        />
-      </Fab>
+      <SplitFab />
     </View>
   );
 }
