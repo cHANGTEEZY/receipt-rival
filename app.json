@@ -42,7 +42,15 @@
       "expo-secure-store",
       "expo-image",
       "expo-status-bar",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow ReceiptRival to access your photos to attach receipt images.",
+          "cameraPermission": "Allow ReceiptRival to use your camera to photograph receipts."
+        }
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,

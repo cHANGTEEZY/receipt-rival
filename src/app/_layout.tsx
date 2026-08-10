@@ -16,6 +16,7 @@ import {
   useStackContentStyle,
 } from "@/hooks/use-navigation-theme";
 import { useAppFonts } from "@/lib/fonts";
+import { preloadAppHaptics } from "@/lib/haptics";
 import { AppProviders } from "@/providers/app-providers";
 
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -29,6 +30,10 @@ export default function RootLayout() {
   const colorScheme = useAppColorScheme();
   const backgroundColor = useScreenBackgroundColor();
   const statusBarStyle = colorScheme === "dark" ? "light" : "dark";
+
+  useEffect(() => {
+    preloadAppHaptics();
+  }, []);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {

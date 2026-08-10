@@ -1,7 +1,8 @@
 import { type ComponentProps } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { useCSSVariable, useUniwind } from "uniwind";
 
+import HapticPressable from "@/components/HapticButton";
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -94,11 +95,8 @@ export default function CycleTheme() {
   const border = useCSSVariable("--color-border");
 
   const selectedColor =
-    typeof foreground === "string"
-      ? foreground
-      : FOREGROUND_FALLBACK[scheme];
-  const idleColor =
-    typeof muted === "string" ? muted : MUTED_FALLBACK[scheme];
+    typeof foreground === "string" ? foreground : FOREGROUND_FALLBACK[scheme];
+  const idleColor = typeof muted === "string" ? muted : MUTED_FALLBACK[scheme];
   const idleBorder =
     typeof border === "string" ? border : BORDER_FALLBACK[scheme];
 
@@ -109,12 +107,21 @@ export default function CycleTheme() {
         const accent = isSelected ? selectedColor : idleColor;
 
         return (
-          <Pressable
+          <HapticPressable
             key={option}
             accessibilityRole="button"
             accessibilityState={{ selected: isSelected }}
             accessibilityLabel={`${LABELS[option]} color scheme`}
-            onPress={() => setAppearance(option)}
+            haptic={
+              isSelected
+                ? { type: "none" }
+                : { type: "pulsar", effect: "selection" }
+            }
+            hapticTrigger="onPressIn"
+            onPress={() => {
+              if (option === selected) return;
+              setAppearance(option);
+            }}
             className="min-h-27.5 flex-1 justify-between rounded-xl px-3.5 py-3.5"
             style={{
               borderCurve: "continuous",
@@ -130,7 +137,7 @@ export default function CycleTheme() {
             >
               {LABELS[option]}
             </Typography>
-          </Pressable>
+          </HapticPressable>
         );
       })}
     </View>

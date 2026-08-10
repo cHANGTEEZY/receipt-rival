@@ -10,14 +10,41 @@ import {
   ViewStyle,
 } from "react-native";
 
+import {
+  hapticError,
+  hapticPress,
+  hapticSelection,
+  hapticSubmit,
+  hapticSuccess,
+  hapticToggle,
+} from "@/lib/haptics";
+
 export type HapticTrigger = "onPressIn" | "onPress" | "onLongPress" | "manual";
+
+export type PulsarHapticEffect =
+  | "toggle"
+  | "selection"
+  | "submit"
+  | "success"
+  | "error"
+  | "press";
 
 export type HapticConfig =
   | { type: "selection" }
   | { type: "impact"; style?: Haptics.ImpactFeedbackStyle }
   | { type: "notification"; style?: Haptics.NotificationFeedbackType }
   | { type: "custom"; action: () => Promise<void> | void }
+  | { type: "pulsar"; effect: PulsarHapticEffect }
   | { type: "none" };
+
+const PULSAR_HAPTICS: Record<PulsarHapticEffect, () => void> = {
+  toggle: hapticToggle,
+  selection: hapticSelection,
+  submit: hapticSubmit,
+  success: hapticSuccess,
+  error: hapticError,
+  press: hapticPress,
+};
 
 export type HapticPressableProps = Omit<PressableProps, "style"> & {
   haptic?: HapticConfig;
@@ -68,6 +95,10 @@ export async function runHaptic(
       }
       case "custom": {
         await config.action();
+        return;
+      }
+      case "pulsar": {
+        PULSAR_HAPTICS[config.effect]();
         return;
       }
       case "none":

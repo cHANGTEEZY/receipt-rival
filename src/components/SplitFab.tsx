@@ -1,3 +1,5 @@
+import { router } from "expo-router";
+
 import { hapticSelection } from "@/lib/haptics";
 import {
   AddInvoiceIcon,
@@ -28,6 +30,7 @@ const SplitFab = () => {
         label="Create Split"
         onPress={() => {
           hapticSelection();
+          router.push("/(screens)/split");
         }}
       />
     </Fab>

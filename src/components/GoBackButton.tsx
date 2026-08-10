@@ -1,3 +1,4 @@
+import { hapticSelection } from "@/lib/haptics";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { router } from "expo-router";
@@ -15,8 +16,10 @@ export default function GoBackButton() {
       hitSlop={8}
       onPress={() => {
         if (router.canGoBack()) {
+          hapticSelection();
           router.back();
         } else {
+          hapticSelection();
           router.replace("/(app)/home");
         }
       }}

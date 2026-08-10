@@ -2,16 +2,16 @@ import { router } from "expo-router";
 import { Alert, Linking, View } from "react-native";
 import { useUniwind } from "uniwind";
 
-import {
-  Logout01Icon,
-  Mail01Icon,
-  PaintBrush01Icon,
-} from "@hugeicons/core-free-icons";
 import GoBackButton from "@/components/GoBackButton";
 import CollapsedLargeHeader from "@/components/layouts/CollapsedLargeHeader";
 import MeshBackground from "@/components/MeshBackground";
 import ProfileButton from "@/components/ProfileButton";
 import { authClient, useSession } from "@/lib/auth-client";
+import {
+  Logout01Icon,
+  Mail01Icon,
+  PaintBrush01Icon,
+} from "@hugeicons/core-free-icons";
 
 import { Typography } from "heroui-native/text";
 

@@ -8,6 +8,7 @@ function configureHaptics(): void {
   if (Platform.OS === "web" || hapticsConfigured) return;
   hapticsConfigured = true;
 
+  Settings.enableHaptics(true);
   // Pulsar can play synthesized "audio simulation" with presets. Turn it off
   // so feedback stays vibration-only (like expo-haptics / system haptics).
   Settings.enableSound(false);
@@ -44,15 +45,16 @@ export function playPreset(play: () => void): void {
 }
 
 const APP_PRESET_NAMES = [
-  "propel",
-  "bloom",
-  "flourish",
-  "wobble",
-  "buzz",
-  "blip",
-  "snap",
-  "strike",
-  "pulse",
+  "Propel",
+  "Bloom",
+  "Flourish",
+  "Wobble",
+  "Buzz",
+  "Blip",
+  "Snap",
+  "Strike",
+  "Pulse",
+  "SystemSelection",
 ] as const;
 
 /** Preload presets used across the app to reduce first-play latency. */
