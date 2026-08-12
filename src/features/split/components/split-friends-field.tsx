@@ -64,7 +64,11 @@ export function SplitFriendsField({
 
   return (
     <View className="gap-2">
-      {friends.map((friend) => {
+      <View
+        className={`gap-2 rounded-2xl ${error ? "border border-danger p-3" : ""}`}
+        style={error ? { borderCurve: "continuous" } : undefined}
+      >
+        {friends.map((friend) => {
         const isSelected = selected.has(friend.id);
 
         return (
@@ -90,6 +94,7 @@ export function SplitFriendsField({
           </Pressable>
         );
       })}
+      </View>
       {error ? <FieldError>{error}</FieldError> : null}
     </View>
   );

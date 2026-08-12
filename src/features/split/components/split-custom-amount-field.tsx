@@ -78,7 +78,10 @@ export function SplitCustomAmountField({
   }
 
   return (
-    <View className="gap-4">
+    <View
+      className={`gap-4 ${error ? "rounded-2xl border border-danger p-3" : ""}`}
+      style={error ? { borderCurve: "continuous" } : undefined}
+    >
       <View className="flex-row items-center justify-between">
         <Typography
           type="body-sm"

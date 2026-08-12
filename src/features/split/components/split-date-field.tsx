@@ -58,7 +58,9 @@ export function SplitDateField({
             accessibilityRole="button"
             accessibilityLabel={`${label}, ${formatDate(value)}`}
             onPress={() => setShowAndroidPicker(true)}
-            className="rounded-xl border border-border bg-surface px-3 py-3"
+            className={`rounded-xl border bg-surface px-3 py-3 ${
+              error ? "border-danger" : "border-border"
+            }`}
             style={{ borderCurve: "continuous" }}
           >
             <Typography type="body-sm" className="text-foreground">

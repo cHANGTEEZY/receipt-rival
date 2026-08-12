@@ -28,6 +28,16 @@ export const ENDPOINTS = {
       createCustom: (paymentId: string) =>
         `${BASE_URL_ADD_ON}/payments/${paymentId}/splits/custom`,
     },
+    settlements: {
+      list: (paymentId: string) =>
+        `${BASE_URL_ADD_ON}/payments/${paymentId}/settlements`,
+      cash: (paymentId: string) =>
+        `${BASE_URL_ADD_ON}/payments/${paymentId}/settlements/cash`,
+      confirm: (paymentId: string) =>
+        `${BASE_URL_ADD_ON}/payments/${paymentId}/settlements/confirm`,
+      reject: (paymentId: string) =>
+        `${BASE_URL_ADD_ON}/payments/${paymentId}/settlements/reject`,
+    },
   },
 
   splits: {

@@ -1,6 +1,7 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { paymentsApi } from "../payments";
+import { settlementsApi } from "../settlements";
 import { splitsApi } from "../splits";
 
 export const PAYMENTS_QUERY_KEYS = {
@@ -10,6 +11,8 @@ export const PAYMENTS_QUERY_KEYS = {
   participants: (paymentId: string) =>
     ["payments", paymentId, "participants"] as const,
   splits: (paymentId: string) => ["payments", paymentId, "splits"] as const,
+  settlements: (paymentId: string) =>
+    ["payments", paymentId, "settlements"] as const,
   owedByMe: ["splits", "owed-by-me"] as const,
   owedToMe: ["splits", "owed-to-me"] as const,
 };
@@ -34,6 +37,9 @@ export function invalidatePaymentQueries(
     });
     queryClient.invalidateQueries({
       queryKey: PAYMENTS_QUERY_KEYS.splits(paymentId),
+    });
+    queryClient.invalidateQueries({
+      queryKey: PAYMENTS_QUERY_KEYS.settlements(paymentId),
     });
   }
 }
@@ -77,6 +83,14 @@ export const usePaymentSplits = (paymentId: string) => {
   });
 };
 
+export const usePaymentSettlements = (paymentId: string) => {
+  return useQuery({
+    queryKey: PAYMENTS_QUERY_KEYS.settlements(paymentId),
+    queryFn: () => settlementsApi.listByPayment(paymentId),
+    enabled: Boolean(paymentId),
+  });
+};
+
 export const useSplitsOwedByMe = () => {
   return useQuery({
     queryKey: PAYMENTS_QUERY_KEYS.owedByMe,
@@ -90,3 +104,38 @@ export const useSplitsOwedToMe = () => {
     queryFn: splitsApi.listOwedToMe,
   });
 };
+
+export function useRequestCashSettlement(paymentId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => settlementsApi.requestCash(paymentId),
+    onSuccess: () => {
+      invalidatePaymentQueries(queryClient, paymentId);
+    },
+  });
+}
+
+export function useConfirmCashSettlement(paymentId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payerUserId: string) =>
+      settlementsApi.confirmCash(paymentId, payerUserId),
+    onSuccess: () => {
+      invalidatePaymentQueries(queryClient, paymentId);
+    },
+  });
+}
+
+export function useRejectCashSettlement(paymentId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payerUserId: string) =>
+      settlementsApi.rejectCash(paymentId, payerUserId),
+    onSuccess: () => {
+      invalidatePaymentQueries(queryClient, paymentId);
+    },
+  });
+}

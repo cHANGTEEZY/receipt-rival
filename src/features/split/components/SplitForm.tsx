@@ -1,30 +1,36 @@
 import { useForm } from "@tanstack/react-form";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { View } from "react-native";
 import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSequence,
-  withTiming,
+  SlideInLeft,
+  SlideInRight,
+  SlideOutLeft,
+  SlideOutRight,
 } from "react-native-reanimated";
 
 import { useFriendsList } from "@/api/hooks/use-friends";
 import { getAcceptedFriends } from "@/features/friends/lib/friendship-status";
-import { hapticError, hapticProcessing, hapticSuccess } from "@/lib/haptics";
+import {
+  hapticError,
+  hapticProcessing,
+  hapticSelection,
+  hapticSuccess,
+} from "@/lib/haptics";
 import {
   collectValidationMessages,
-  getFieldDisplayError,
+  fieldHasError,
+  getFirstErroredGroupIndex,
   getItemRowErrors,
+  resolveFieldError,
 } from "@/utils/errors";
 import { logger } from "@/utils/logger";
 import { formatMoney, formatShortDate } from "@/utils/money";
 
 import { Alert } from "heroui-native/alert";
-import { Button } from "heroui-native/button";
 import { FieldError } from "heroui-native/field-error";
+import { ListGroup } from "heroui-native/list-group";
 import { Select } from "heroui-native/select";
-import { Spinner } from "heroui-native/spinner";
-import { TagGroup } from "heroui-native/tag-group";
+import { Separator } from "heroui-native/separator";
 import { Typography } from "heroui-native/text";
 import { useToast } from "heroui-native/toast";
 
@@ -34,63 +40,214 @@ import {
   getSplitFormDefaults,
   splitFormSchema,
   type SplitFormSchema,
+  type SplitMethod,
 } from "../data/split-form";
-import { SplitBottomSheet } from "./SplitBottomSheet";
-import { SplitSummaryRow } from "./SplitSummaryRow";
 import { SplitCustomAmountField } from "./split-custom-amount-field";
 import { SplitDateField } from "./split-date-field";
-import { SplitFriendsField } from "./split-friends-field";
 import { SplitField, SplitTextAreaField } from "./split-form-field";
+import { SplitFriendsField } from "./split-friends-field";
 import { SplitItemAssignmentsField } from "./split-item-assignments-field";
 import { SplitItemsField } from "./split-items-field";
 import { SplitMoneyField } from "./split-money-field";
 import { SplitPercentageField } from "./split-percentage-field";
 import { SplitReceiptImageField } from "./split-receipt-image-field";
+import { SplitMethodField } from "./split-method-field";
+import {
+  getHumorousErrorToast,
+  getStepValidationError,
+  type StepId,
+} from "../lib/split-form-validation";
+import {
+  SplitStepFooter,
+  SplitStepHeader,
+  type SplitStep,
+} from "./split-stepper";
 
 type SplitFormProps = {
   onSubmit?: (values: SplitFormSchema) => void | Promise<void>;
 };
 
+type FormStep = SplitStep & { id: StepId; fields: string[] };
+
+function buildSteps(splitMethod: SplitMethod): FormStep[] {
+  const steps: FormStep[] = [
+    {
+      id: "details",
+      title: "Split basics",
+      description: "Pick how you'll split the bill and give it a name.",
+      fields: ["splitMethod", "title", "description", "locationName"],
+    },
+    {
+      id: "friends",
+      title: "Who's in",
+      description: "Choose who should be included in this split.",
+      fields: ["friendIds"],
+    },
+    {
+      id: "amounts",
+      title: "Amounts",
+      description:
+        "Set the currency, bill total, any discount, and when payment is due.",
+      fields: ["currency", "totalAmountCents", "discountAmountCents", "dueAt"],
+    },
+  ];
+
+  if (splitMethod === "equal" || splitMethod === "itemized") {
+    steps.push({
+      id: "items",
+      title: "Items",
+      description:
+        splitMethod === "itemized"
+          ? "Required for itemized splits. Add every line item from the receipt."
+          : "Optional. If you add items, the total is calculated from them.",
+      fields: ["items"],
+    });
+  }
+
+  if (splitMethod === "itemized") {
+    steps.push({
+      id: "assignments",
+      title: "Assign items",
+      description: "Distribute every item's quantity across the friends.",
+      fields: ["itemAssignments"],
+    });
+  }
+
+  if (splitMethod === "percentage") {
+    steps.push({
+      id: "percentage",
+      title: "Percentage split",
+      description: "Assign a percentage share to each friend.",
+      fields: ["percentageSplits"],
+    });
+  }
+
+  if (splitMethod === "custom") {
+    steps.push({
+      id: "custom",
+      title: "Custom split",
+      description: "Set exact amounts manually. They must add up to the total.",
+      fields: ["customSplits"],
+    });
+  }
+
+  steps.push({
+    id: "review",
+    title: "Receipt & review",
+    description:
+      "Add a receipt photo, double check the details, then create the split.",
+    fields: ["receiptImage"],
+  });
+
+  return steps;
+}
+
+function FormSection({ children }: { children: ReactNode }) {
+  return (
+    <View
+      className="gap-4 rounded-3xl bg-surface px-4 py-5"
+      style={{ borderCurve: "continuous" }}
+    >
+      {children}
+    </View>
+  );
+}
+
+function SplitReviewSummary({
+  values,
+  friendNameById,
+  netTotalCents,
+  currencyLabel,
+}: {
+  values: SplitFormSchema;
+  friendNameById: Map<string, string>;
+  netTotalCents: number;
+  currencyLabel: string;
+}) {
+  const methodLabel =
+    SPLIT_METHODS.find((method) => method.value === values.splitMethod)
+      ?.label ?? values.splitMethod;
+  const friendNames = values.friendIds
+    .map((id) => friendNameById.get(id) ?? "Friend")
+    .join(", ");
+
+  return (
+    <ListGroup className="overflow-hidden rounded-3xl">
+      <ListGroup.Item disabled>
+        <ListGroup.ItemContent>
+          <ListGroup.ItemTitle>
+            {values.title.trim() || "Untitled split"}
+          </ListGroup.ItemTitle>
+          <ListGroup.ItemDescription numberOfLines={1}>
+            {values.locationName.trim() || "No location set"}
+          </ListGroup.ItemDescription>
+        </ListGroup.ItemContent>
+        <ListGroup.ItemSuffix>
+          <Typography type="body-sm" weight="semibold">
+            {methodLabel}
+          </Typography>
+        </ListGroup.ItemSuffix>
+      </ListGroup.Item>
+
+      <Separator />
+
+      <ListGroup.Item disabled>
+        <ListGroup.ItemContent>
+          <ListGroup.ItemTitle>Friends</ListGroup.ItemTitle>
+          <ListGroup.ItemDescription numberOfLines={1}>
+            {friendNames || "None selected"}
+          </ListGroup.ItemDescription>
+        </ListGroup.ItemContent>
+        <ListGroup.ItemSuffix>
+          <Typography type="body-sm" weight="semibold">
+            {values.friendIds.length}
+          </Typography>
+        </ListGroup.ItemSuffix>
+      </ListGroup.Item>
+
+      <Separator />
+
+      <ListGroup.Item disabled>
+        <ListGroup.ItemContent>
+          <ListGroup.ItemTitle>Total due</ListGroup.ItemTitle>
+          <ListGroup.ItemDescription>
+            {currencyLabel} · Due {formatShortDate(values.dueAt)}
+          </ListGroup.ItemDescription>
+        </ListGroup.ItemContent>
+        <ListGroup.ItemSuffix>
+          <Typography type="body-sm" weight="bold">
+            {formatMoney(netTotalCents, values.currency)}
+          </Typography>
+        </ListGroup.ItemSuffix>
+      </ListGroup.Item>
+    </ListGroup>
+  );
+}
+
 export default function SplitForm({ onSubmit }: SplitFormProps) {
   const { toast } = useToast();
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitShakeSignal, setSubmitShakeSignal] = useState(0);
+  const [stepFieldErrors, setStepFieldErrors] = useState<Record<string, string>>(
+    {},
+  );
+  const [shakeSignal, setShakeSignal] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState<"forward" | "backward">("forward");
+
+  const showFieldErrorToast = (field: string, message: string) => {
+    const humorous = getHumorousErrorToast(field, message);
+    toast.show({
+      variant: "danger",
+      label: humorous.label,
+      description: humorous.description,
+    });
+  };
 
   const { data: friendsData } = useFriendsList();
   const friends = getAcceptedFriends(friendsData?.data ?? []);
   const friendNameById = useMemo(
     () => new Map(friends.map((friend) => [friend.id, friend.name])),
     [friends],
-  );
-
-  const triggerSubmitShake = useCallback(() => {
-    setSubmitShakeSignal((count) => count + 1);
-  }, []);
-
-  const showValidationFailure = useCallback(
-    (formApi: Parameters<typeof collectValidationMessages>[0]) => {
-      const messages = collectValidationMessages(formApi);
-      const summary =
-        messages[0] ?? "Fix the highlighted fields and try again.";
-
-      logger.warn("split form validation failed", {
-        messages,
-        errors: formApi.getAllErrors(),
-      });
-
-      setSubmitError(summary);
-      toast.show({
-        variant: "danger",
-        label: "Couldn\u2019t create split",
-        description:
-          messages.length > 1
-            ? `${summary} (+${messages.length - 1} more)`
-            : summary,
-      });
-      hapticError();
-      triggerSubmitShake();
-    },
-    [toast, triggerSubmitShake],
   );
 
   const form = useForm({
@@ -101,13 +258,44 @@ export default function SplitForm({ onSubmit }: SplitFormProps) {
     listeners: {
       onChange: () => {
         setSubmitError(null);
+        setStepFieldErrors({});
       },
     },
     onSubmitInvalid: ({ formApi }) => {
-      showValidationFailure(formApi);
+      const messages = collectValidationMessages(formApi);
+      const summary =
+        messages[0] ?? "Fix the highlighted fields and try again.";
+
+      logger.warn("split form validation failed", {
+        messages,
+        errors: formApi.getAllErrors(),
+      });
+
+      const errorSteps = buildSteps(formApi.state.values.splitMethod);
+      const erroredIndex = getFirstErroredGroupIndex(
+        errorSteps.map((step) => step.fields),
+        formApi.state.fieldMeta,
+      );
+
+      const erroredField =
+        erroredIndex >= 0
+          ? errorSteps[erroredIndex]?.fields.find((fieldName) =>
+              fieldHasError(fieldName, formApi.state.fieldMeta),
+            )
+          : undefined;
+
+      if (erroredIndex >= 0 && erroredIndex !== currentIndex) {
+        setDirection(erroredIndex < currentIndex ? "backward" : "forward");
+        setCurrentIndex(erroredIndex);
+      }
+
+      showFieldErrorToast(erroredField ?? "title", summary);
+      hapticError();
+      setShakeSignal((count) => count + 1);
     },
     onSubmit: async ({ value }) => {
       setSubmitError(null);
+      setStepFieldErrors({});
 
       hapticProcessing();
 
@@ -117,17 +305,13 @@ export default function SplitForm({ onSubmit }: SplitFormProps) {
       } catch (error) {
         logger.error("split form submit failed", error);
         hapticError();
-        triggerSubmitShake();
+        setShakeSignal((count) => count + 1);
         const message =
           error instanceof Error
             ? error.message
             : "Could not create this split. Try again.";
         setSubmitError(message);
-        toast.show({
-          variant: "danger",
-          label: "Couldn\u2019t create split",
-          description: message,
-        });
+        showFieldErrorToast("submit", message);
       }
     },
   });
@@ -144,13 +328,17 @@ export default function SplitForm({ onSubmit }: SplitFormProps) {
     <form.Subscribe
       selector={(state) => ({
         fieldMeta: state.fieldMeta,
-        submissionAttempts: state.submissionAttempts,
-        isValid: state.isValid,
         isSubmitting: state.isSubmitting,
         values: state.values,
       })}
     >
-      {({ fieldMeta, submissionAttempts, isValid, isSubmitting, values }) => {
+      {({ fieldMeta, isSubmitting, values }) => {
+        const steps = buildSteps(values.splitMethod);
+        const clampedIndex = Math.min(currentIndex, steps.length - 1);
+        const currentStep = steps[clampedIndex];
+        const isFirstStep = clampedIndex === 0;
+        const isLastStep = clampedIndex === steps.length - 1;
+
         const filledItems = values.items.filter(
           (item) => item.name.trim() || item.unitPriceCents > 0,
         );
@@ -165,559 +353,391 @@ export default function SplitForm({ onSubmit }: SplitFormProps) {
           effectiveTotalCents - values.discountAmountCents,
         );
 
-        const hasErrorFor = (names: string[]) =>
-          submissionAttempts > 0 &&
-          names.some((name) => Boolean(getFieldDisplayError(name, [], fieldMeta)));
-
-        const detailsValue = values.title
-          ? `${values.title}${values.locationName ? ` @ ${values.locationName}` : ""}`
-          : undefined;
-
-        const friendNames = values.friendIds
-          .map((id) => friendNameById.get(id))
-          .filter((name): name is string => Boolean(name));
-        const friendsValue =
-          values.friendIds.length > 0
-            ? `${values.friendIds.length} accomplice${values.friendIds.length === 1 ? "" : "s"}${friendNames.length ? `: ${friendNames.join(", ")}` : ""}`
-            : undefined;
-
-        const amountsValue = `${formatMoney(netTotalCents, values.currency)}${
-          values.discountAmountCents > 0
-            ? ` (−${formatMoney(values.discountAmountCents, values.currency)})`
-            : ""
-        } · Due ${formatShortDate(values.dueAt)}`;
-
-        const itemsValue =
-          filledItems.length > 0
-            ? `${filledItems.length} item${filledItems.length === 1 ? "" : "s"} · ${formatMoney(itemsTotalCents, values.currency)}`
-            : undefined;
-
-        const incompleteAssignmentCount = filledItems.filter((item) => {
-          const assignment = values.itemAssignments.find(
-            (a) => a.itemLocalId === item.localId,
+        const fieldError = (fieldName: string, fieldErrors: unknown[]) =>
+          resolveFieldError(
+            fieldName,
+            fieldErrors,
+            fieldMeta,
+            stepFieldErrors,
           );
-          const assignedQuantity = (assignment?.allocations ?? []).reduce(
-            (sum, allocation) => sum + allocation.quantity,
-            0,
-          );
-          return Math.abs(assignedQuantity - item.quantity) > 0.001;
-        }).length;
-        const assignmentsValue =
-          filledItems.length === 0
-            ? undefined
-            : incompleteAssignmentCount === 0
-              ? "All units assigned — nobody's off the hook."
-              : `${incompleteAssignmentCount} item${incompleteAssignmentCount === 1 ? "" : "s"} still unassigned`;
 
-        const totalPercentage = values.percentageSplits.reduce(
-          (sum, split) => sum + split.percentage,
-          0,
+        const hasActiveError = currentStep.fields.some((fieldName) =>
+          Boolean(fieldError(fieldName, [])),
         );
-        const percentageValue =
-          values.friendIds.length === 0
-            ? undefined
-            : Math.abs(totalPercentage - 100) <= 0.01
-              ? "100% assigned"
-              : `Missing ${(100 - totalPercentage).toFixed(1)}%`;
 
-        const assignedCustomCents = values.customSplits.reduce(
-          (sum, split) => sum + split.amountCents,
-          0,
-        );
-        const customValue =
-          values.friendIds.length === 0
-            ? undefined
-            : `${formatMoney(assignedCustomCents, values.currency)} of ${formatMoney(netTotalCents, values.currency)}`;
+        const handleNext = () => {
+          if (isLastStep) {
+            form.handleSubmit();
+            return;
+          }
+
+          const validationError = getStepValidationError(currentStep.id, values);
+
+          if (validationError) {
+            setStepFieldErrors({ [validationError.field]: validationError.message });
+            showFieldErrorToast(
+              validationError.field,
+              validationError.message,
+            );
+            hapticError();
+            setShakeSignal((count) => count + 1);
+            return;
+          }
+
+          hapticSelection();
+          setDirection("forward");
+          setCurrentIndex(clampedIndex + 1);
+          setStepFieldErrors({});
+        };
+
+        const handleBack = () => {
+          if (isFirstStep) return;
+          hapticSelection();
+          setDirection("backward");
+          setCurrentIndex(clampedIndex - 1);
+          setStepFieldErrors({});
+        };
 
         return (
           <View className="gap-6">
-            {submitError ? (
-              <Alert status="danger">
-                <Alert.Indicator />
-                <Alert.Content>
-                  <Alert.Title>Couldn&apos;t create split</Alert.Title>
-                  <Alert.Description>{submitError}</Alert.Description>
-                </Alert.Content>
-              </Alert>
-            ) : null}
+            <SplitStepHeader steps={steps} currentIndex={clampedIndex} />
 
-            <form.Field name="splitMethod">
-              {(field) => (
-                <View className="gap-2">
-                  <Typography
-                    type="body-sm"
-                    weight="semibold"
-                    className="text-foreground"
-                  >
-                    How are we doing this?
-                  </Typography>
-                  <TagGroup
-                    selectionMode="single"
-                    variant="surface"
-                    selectedKeys={new Set([field.state.value])}
-                    onSelectionChange={(keys) => {
-                      const [selected] = [...keys];
-                      if (selected) {
-                        field.handleChange(
-                          selected as SplitFormSchema["splitMethod"],
-                        );
-                      }
-                    }}
-                  >
-                    <TagGroup.List className="flex-row flex-wrap gap-2">
-                      {SPLIT_METHODS.map((method) => (
-                        <TagGroup.Item key={method.value} id={method.value}>
-                          {method.label}
-                        </TagGroup.Item>
-                      ))}
-                    </TagGroup.List>
-                  </TagGroup>
-                </View>
-              )}
-            </form.Field>
-
-            <SplitBottomSheet
-              trigger={
-                <SplitSummaryRow
-                  label="Spill the Details"
-                  value={detailsValue}
-                  placeholder="Name this betrayal"
-                  hasError={hasErrorFor(["title", "description", "locationName"])}
-                />
+            <Animated.View
+              key={currentStep.id}
+              entering={
+                direction === "forward"
+                  ? SlideInRight.duration(240)
+                  : SlideInLeft.duration(240)
               }
-              title="Spill the Details"
-              description="Name the split and add any context your group needs."
-            >
-              <form.Field name="title">
-                {(field) => (
-                  <SplitField
-                    label="What's This Betrayal Called?"
-                    placeholder="Dinner at Mario's"
-                    value={field.state.value}
-                    onChangeText={field.handleChange}
-                    onBlur={field.handleBlur}
-                    error={getFieldDisplayError(
-                      "title",
-                      field.state.meta.errors,
-                      fieldMeta,
-                    )}
-                    isRequired
-                    autoCapitalize="sentences"
-                    returnKeyType="next"
-                  />
-                )}
-              </form.Field>
-
-              <form.Field name="description">
-                {(field) => (
-                  <SplitTextAreaField
-                    label="Your Alibi"
-                    placeholder="Optional notes for everyone in the group."
-                    value={field.state.value}
-                    onChangeText={field.handleChange}
-                    onBlur={field.handleBlur}
-                    error={getFieldDisplayError(
-                      "description",
-                      field.state.meta.errors,
-                      fieldMeta,
-                    )}
-                    numberOfLines={4}
-                  />
-                )}
-              </form.Field>
-
-              <form.Field name="locationName">
-                {(field) => (
-                  <SplitField
-                    label="Scene of the Crime"
-                    placeholder="Restaurant, venue, or address"
-                    value={field.state.value}
-                    onChangeText={field.handleChange}
-                    onBlur={field.handleBlur}
-                    error={getFieldDisplayError(
-                      "locationName",
-                      field.state.meta.errors,
-                      fieldMeta,
-                    )}
-                    autoCapitalize="words"
-                    returnKeyType="next"
-                  />
-                )}
-              </form.Field>
-            </SplitBottomSheet>
-
-            <SplitBottomSheet
-              trigger={
-                <SplitSummaryRow
-                  label="Who's Paying With You"
-                  value={friendsValue}
-                  placeholder="Name the accomplices"
-                  hasError={hasErrorFor(["friendIds"])}
-                />
+              exiting={
+                direction === "forward"
+                  ? SlideOutLeft.duration(180)
+                  : SlideOutRight.duration(180)
               }
-              title="Name the Accomplices"
-              description="Choose who should be included in this split."
+              className="gap-6"
             >
-              <form.Field name="friendIds">
-                {(field) => (
-                  <SplitFriendsField
-                    value={field.state.value}
-                    onChange={field.handleChange}
-                    error={getFieldDisplayError(
-                      "friendIds",
-                      field.state.meta.errors,
-                      fieldMeta,
-                    )}
-                  />
-                )}
-              </form.Field>
-            </SplitBottomSheet>
-
-            <SplitBottomSheet
-              trigger={
-                <SplitSummaryRow
-                  label="Talk Money"
-                  value={amountsValue}
-                  hasError={hasErrorFor([
-                    "currency",
-                    "totalAmountCents",
-                    "discountAmountCents",
-                    "dueAt",
-                  ])}
-                />
-              }
-              title="Talk Money"
-              description="Set the currency, bill total, any discount, and when payment is due."
-            >
-              <form.Field name="currency">
-                {(field) => (
-                  <View className="gap-1.5">
-                    <Typography type="body-sm" weight="semibold">
-                      Currency
-                    </Typography>
-                    <Select
-                      presentation="bottom-sheet"
-                      value={{
-                        value: field.state.value,
-                        label:
-                          currencyLabels[field.state.value] ??
-                          field.state.value,
-                      }}
-                      onValueChange={(option) => {
-                        if (option && !Array.isArray(option)) {
-                          field.handleChange(option.value);
-                        }
-                      }}
-                    >
-                      <Select.Trigger className="w-full">
-                        <Select.Value placeholder="Choose a currency" />
-                        <Select.TriggerIndicator />
-                      </Select.Trigger>
-                      <Select.Portal>
-                        <Select.Overlay />
-                        <Select.Content
-                          presentation="bottom-sheet"
-                          snapPoints={["45%"]}
-                        >
-                          <Select.ListLabel className="mb-2">
-                            Choose a currency
-                          </Select.ListLabel>
-                          {CURRENCY_OPTIONS.map((option) => (
-                            <Select.Item
-                              key={option.value}
-                              value={option.value}
-                              label={option.label}
-                            />
-                          ))}
-                        </Select.Content>
-                      </Select.Portal>
-                    </Select>
-                    {getFieldDisplayError(
-                      "currency",
-                      field.state.meta.errors,
-                      fieldMeta,
-                    ) ? (
-                      <FieldError>
-                        {getFieldDisplayError(
-                          "currency",
-                          field.state.meta.errors,
-                          fieldMeta,
-                        )}
-                      </FieldError>
-                    ) : null}
-                  </View>
-                )}
-              </form.Field>
-
-              {values.splitMethod !== "itemized" ? (
-                <form.Field name="totalAmountCents">
-                  {(field) => (
-                    <SplitMoneyField
-                      label="The Damage"
-                      placeholder="0.00"
-                      description="Bill total before discount."
-                      valueCents={field.state.value}
-                      onChangeCents={field.handleChange}
-                      onBlur={field.handleBlur}
-                      error={getFieldDisplayError(
-                        "totalAmountCents",
-                        field.state.meta.errors,
-                        fieldMeta,
-                      )}
-                      isRequired
-                      returnKeyType="next"
-                    />
-                  )}
-                </form.Field>
+              {submitError && isLastStep ? (
+                <Alert status="danger">
+                  <Alert.Indicator />
+                  <Alert.Content>
+                    <Alert.Title>Couldn&apos;t create split</Alert.Title>
+                    <Alert.Description>{submitError}</Alert.Description>
+                  </Alert.Content>
+                </Alert>
               ) : null}
 
-              <form.Field name="discountAmountCents">
-                {(field) => (
-                  <SplitMoneyField
-                    label="Sweet, Sweet Discount"
-                    placeholder="0.00"
-                    description="Optional amount to subtract before splitting."
-                    valueCents={field.state.value}
-                    onChangeCents={field.handleChange}
-                    onBlur={field.handleBlur}
-                    error={getFieldDisplayError(
-                      "discountAmountCents",
-                      field.state.meta.errors,
-                      fieldMeta,
+              {currentStep.id === "details" ? (
+                <>
+                  <form.Field name="splitMethod">
+                    {(field) => (
+                      <SplitMethodField
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                      />
                     )}
-                    returnKeyType="next"
-                  />
-                )}
-              </form.Field>
+                  </form.Field>
 
-              <form.Field name="dueAt">
-                {(field) => (
-                  <SplitDateField
-                    label="Pay-Up Deadline"
-                    description="Future dates are banned. This debt is already due."
-                    value={field.state.value}
-                    onChange={field.handleChange}
-                    error={getFieldDisplayError(
-                      "dueAt",
-                      field.state.meta.errors,
-                      fieldMeta,
+                  <FormSection>
+                    <form.Field name="title">
+                      {(field) => (
+                        <SplitField
+                          label="Title"
+                          placeholder="Dinner at Mario's"
+                          value={field.state.value}
+                          onChangeText={field.handleChange}
+                          onBlur={field.handleBlur}
+                          error={fieldError("title", field.state.meta.errors)}
+                          isRequired
+                          autoCapitalize="sentences"
+                          returnKeyType="next"
+                        />
+                      )}
+                    </form.Field>
+
+                    <form.Field name="description">
+                      {(field) => (
+                        <SplitTextAreaField
+                          label="Description"
+                          placeholder="Optional notes for everyone in the group."
+                          value={field.state.value}
+                          onChangeText={field.handleChange}
+                          onBlur={field.handleBlur}
+                          error={fieldError(
+                            "description",
+                            field.state.meta.errors,
+                          )}
+                          numberOfLines={4}
+                        />
+                      )}
+                    </form.Field>
+
+                    <form.Field name="locationName">
+                      {(field) => (
+                        <SplitField
+                          label="Location"
+                          placeholder="Restaurant, venue, or address"
+                          value={field.state.value}
+                          onChangeText={field.handleChange}
+                          onBlur={field.handleBlur}
+                          error={fieldError(
+                            "locationName",
+                            field.state.meta.errors,
+                          )}
+                          autoCapitalize="words"
+                          returnKeyType="next"
+                        />
+                      )}
+                    </form.Field>
+                  </FormSection>
+                </>
+              ) : null}
+
+              {currentStep.id === "friends" ? (
+                <FormSection>
+                  <form.Field name="friendIds">
+                    {(field) => (
+                      <SplitFriendsField
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                        error={fieldError("friendIds", field.state.meta.errors)}
+                      />
                     )}
-                    isRequired
-                  />
-                )}
-              </form.Field>
-            </SplitBottomSheet>
+                  </form.Field>
+                </FormSection>
+              ) : null}
 
-            {values.splitMethod === "itemized" ||
-            values.splitMethod === "equal" ? (
-              <SplitBottomSheet
-                trigger={
-                  <SplitSummaryRow
-                    label="Autopsy the Receipt"
-                    value={itemsValue}
-                    placeholder={
-                      values.splitMethod === "itemized"
-                        ? "Required — add the evidence"
-                        : "Optional line items"
+              {currentStep.id === "amounts" ? (
+                <FormSection>
+                  <form.Field name="currency">
+                    {(field) => {
+                      const currencyError = fieldError(
+                        "currency",
+                        field.state.meta.errors,
+                      );
+
+                      return (
+                      <View className="gap-1.5">
+                        <Typography type="body-sm" weight="semibold">
+                          Currency
+                        </Typography>
+                        <Select
+                          presentation="bottom-sheet"
+                          value={{
+                            value: field.state.value,
+                            label:
+                              currencyLabels[field.state.value] ??
+                              field.state.value,
+                          }}
+                          onValueChange={(option) => {
+                            if (option && !Array.isArray(option)) {
+                              field.handleChange(option.value);
+                            }
+                          }}
+                        >
+                          <Select.Trigger
+                            className={`w-full ${currencyError ? "border border-danger" : ""}`}
+                          >
+                            <Select.Value placeholder="Choose a currency" />
+                            <Select.TriggerIndicator />
+                          </Select.Trigger>
+                          <Select.Portal>
+                            <Select.Overlay />
+                            <Select.Content
+                              presentation="bottom-sheet"
+                              snapPoints={["45%"]}
+                            >
+                              <Select.ListLabel className="mb-2">
+                                Choose a currency
+                              </Select.ListLabel>
+                              {CURRENCY_OPTIONS.map((option) => (
+                                <Select.Item
+                                  key={option.value}
+                                  value={option.value}
+                                  label={option.label}
+                                />
+                              ))}
+                            </Select.Content>
+                          </Select.Portal>
+                        </Select>
+                        {currencyError ? (
+                          <FieldError>{currencyError}</FieldError>
+                        ) : null}
+                      </View>
+                      );
+                    }}
+                  </form.Field>
+
+                  {values.splitMethod !== "itemized" ? (
+                    <form.Field name="totalAmountCents">
+                      {(field) => (
+                        <SplitMoneyField
+                          label="Total Amount"
+                          placeholder="0.00"
+                          description="Bill total before discount."
+                          valueCents={field.state.value}
+                          onChangeCents={field.handleChange}
+                          onBlur={field.handleBlur}
+                          error={fieldError(
+                            "totalAmountCents",
+                            field.state.meta.errors,
+                          )}
+                          isRequired
+                          returnKeyType="next"
+                        />
+                      )}
+                    </form.Field>
+                  ) : null}
+
+                  <form.Field name="discountAmountCents">
+                    {(field) => (
+                      <SplitMoneyField
+                        label="Discount"
+                        placeholder="0.00"
+                        description="Optional amount to subtract before splitting."
+                        valueCents={field.state.value}
+                        onChangeCents={field.handleChange}
+                        onBlur={field.handleBlur}
+                        error={fieldError(
+                          "discountAmountCents",
+                          field.state.meta.errors,
+                        )}
+                        returnKeyType="next"
+                      />
+                    )}
+                  </form.Field>
+
+                  <form.Field name="dueAt">
+                    {(field) => (
+                      <SplitDateField
+                        label="Due Date"
+                        description="The date the payment is due."
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                        error={fieldError("dueAt", field.state.meta.errors)}
+                        isRequired
+                      />
+                    )}
+                  </form.Field>
+                </FormSection>
+              ) : null}
+
+              {currentStep.id === "items" ? (
+                <FormSection>
+                  <form.Field name="items">
+                    {(field) => (
+                      <SplitItemsField
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                        error={fieldError("items", field.state.meta.errors)}
+                        rowErrors={getItemRowErrors(fieldMeta)}
+                      />
+                    )}
+                  </form.Field>
+                </FormSection>
+              ) : null}
+
+              {currentStep.id === "assignments" ? (
+                <FormSection>
+                  <form.Field name="itemAssignments">
+                    {(field) => (
+                      <SplitItemAssignmentsField
+                        items={values.items}
+                        friendIds={values.friendIds}
+                        currency={values.currency}
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                        error={fieldError(
+                          "itemAssignments",
+                          field.state.meta.errors,
+                        )}
+                      />
+                    )}
+                  </form.Field>
+                </FormSection>
+              ) : null}
+
+              {currentStep.id === "percentage" ? (
+                <FormSection>
+                  <form.Field name="percentageSplits">
+                    {(field) => (
+                      <SplitPercentageField
+                        friendIds={values.friendIds}
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                        error={fieldError(
+                          "percentageSplits",
+                          field.state.meta.errors,
+                        )}
+                      />
+                    )}
+                  </form.Field>
+                </FormSection>
+              ) : null}
+
+              {currentStep.id === "custom" ? (
+                <FormSection>
+                  <form.Field name="customSplits">
+                    {(field) => (
+                      <SplitCustomAmountField
+                        friendIds={values.friendIds}
+                        currency={values.currency}
+                        totalCents={netTotalCents}
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                        error={fieldError(
+                          "customSplits",
+                          field.state.meta.errors,
+                        )}
+                      />
+                    )}
+                  </form.Field>
+                </FormSection>
+              ) : null}
+
+              {currentStep.id === "review" ? (
+                <>
+                  <SplitReviewSummary
+                    values={values}
+                    friendNameById={friendNameById}
+                    netTotalCents={netTotalCents}
+                    currencyLabel={
+                      currencyLabels[values.currency] ?? values.currency
                     }
-                    hasError={hasErrorFor(["items"])}
                   />
-                }
-                title="Autopsy the Receipt"
-                description={
-                  values.splitMethod === "itemized"
-                    ? "Required for itemized splits. Assign every unit to a suspect."
-                    : "Optional. If you add items, the total is calculated from them."
-                }
-              >
-                <form.Field name="items">
-                  {(field) => (
-                    <SplitItemsField
-                      value={field.state.value}
-                      onChange={field.handleChange}
-                      error={getFieldDisplayError(
-                        "items",
-                        field.state.meta.errors,
-                        fieldMeta,
+
+                  <FormSection>
+                    <form.Field name="receiptImage">
+                      {(field) => (
+                        <SplitReceiptImageField
+                          label="Receipt Image"
+                          value={field.state.value}
+                          onChange={field.handleChange}
+                          error={fieldError(
+                            "receiptImage",
+                            field.state.meta.errors,
+                          )}
+                          description="Optional. You can add this later if you do not have one yet."
+                        />
                       )}
-                      rowErrors={getItemRowErrors(fieldMeta)}
-                    />
-                  )}
-                </form.Field>
-              </SplitBottomSheet>
-            ) : null}
+                    </form.Field>
+                  </FormSection>
+                </>
+              ) : null}
+            </Animated.View>
 
-            {values.splitMethod === "itemized" ? (
-              <SplitBottomSheet
-                trigger={
-                  <SplitSummaryRow
-                    label="Assign the Guilt"
-                    value={assignmentsValue}
-                    placeholder="Who ate what?"
-                    hasError={hasErrorFor(["itemAssignments"])}
-                  />
-                }
-                title="Assign the Guilt"
-                description="Distribute every item's quantity across the accomplices."
-              >
-                <form.Field name="itemAssignments">
-                  {(field) => (
-                    <SplitItemAssignmentsField
-                      items={values.items}
-                      friendIds={values.friendIds}
-                      currency={values.currency}
-                      value={field.state.value}
-                      onChange={field.handleChange}
-                      error={getFieldDisplayError(
-                        "itemAssignments",
-                        field.state.meta.errors,
-                        fieldMeta,
-                      )}
-                    />
-                  )}
-                </form.Field>
-              </SplitBottomSheet>
-            ) : null}
-
-            {values.splitMethod === "percentage" ? (
-              <SplitBottomSheet
-                trigger={
-                  <SplitSummaryRow
-                    label="Slice the Pie"
-                    value={percentageValue}
-                    placeholder="Assign shares"
-                    hasError={hasErrorFor(["percentageSplits"])}
-                  />
-                }
-                title="Slice the Pie"
-                description="Assign a percentage share to each accomplice."
-              >
-                <form.Field name="percentageSplits">
-                  {(field) => (
-                    <SplitPercentageField
-                      friendIds={values.friendIds}
-                      value={field.state.value}
-                      onChange={field.handleChange}
-                      error={getFieldDisplayError(
-                        "percentageSplits",
-                        field.state.meta.errors,
-                        fieldMeta,
-                      )}
-                    />
-                  )}
-                </form.Field>
-              </SplitBottomSheet>
-            ) : null}
-
-            {values.splitMethod === "custom" ? (
-              <SplitBottomSheet
-                trigger={
-                  <SplitSummaryRow
-                    label="Name Your Price"
-                    value={customValue}
-                    placeholder="Type exact amounts"
-                    hasError={hasErrorFor(["customSplits"])}
-                  />
-                }
-                title="Name Your Price"
-                description="Set exact amounts manually. They must add up to the total."
-              >
-                <form.Field name="customSplits">
-                  {(field) => (
-                    <SplitCustomAmountField
-                      friendIds={values.friendIds}
-                      currency={values.currency}
-                      totalCents={netTotalCents}
-                      value={field.state.value}
-                      onChange={field.handleChange}
-                      error={getFieldDisplayError(
-                        "customSplits",
-                        field.state.meta.errors,
-                        fieldMeta,
-                      )}
-                    />
-                  )}
-                </form.Field>
-              </SplitBottomSheet>
-            ) : null}
-
-            <form.Field name="receiptImage">
-              {(field) => (
-                <SplitReceiptImageField
-                  label="Exhibit A"
-                  description="Optional. You can add this later if you do not have one yet."
-                  value={field.state.value}
-                  onChange={field.handleChange}
-                  error={getFieldDisplayError(
-                    "receiptImage",
-                    field.state.meta.errors,
-                    fieldMeta,
-                  )}
-                />
-              )}
-            </form.Field>
-
-            <ShakingSubmitButton
-              shakeSignal={submitShakeSignal}
+            <SplitStepFooter
+              stepId={currentStep.id}
+              isFirstStep={isFirstStep}
+              isLastStep={isLastStep}
               isSubmitting={isSubmitting}
-              hasActiveError={
-                Boolean(submitError) || (submissionAttempts > 0 && !isValid)
-              }
-              onPress={() => form.handleSubmit()}
+              hasActiveError={hasActiveError || Boolean(submitError)}
+              shakeSignal={shakeSignal}
+              onBack={handleBack}
+              onNext={handleNext}
             />
           </View>
         );
       }}
     </form.Subscribe>
-  );
-}
-
-type ShakingSubmitButtonProps = {
-  shakeSignal: number;
-  isSubmitting: boolean;
-  hasActiveError: boolean;
-  onPress: () => void;
-};
-
-function ShakingSubmitButton({
-  shakeSignal,
-  isSubmitting,
-  hasActiveError,
-  onPress,
-}: ShakingSubmitButtonProps) {
-  const translateX = useSharedValue(0);
-
-  useEffect(() => {
-    if (shakeSignal === 0) return;
-
-    translateX.value = withSequence(
-      withTiming(-10, { duration: 60 }),
-      withTiming(10, { duration: 60 }),
-      withTiming(-8, { duration: 60 }),
-      withTiming(8, { duration: 60 }),
-      withTiming(-4, { duration: 60 }),
-      withTiming(0, { duration: 60 }),
-    );
-  }, [shakeSignal, translateX]);
-
-  const shakeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
-  return (
-    <Animated.View style={shakeStyle}>
-      <Button
-        variant={hasActiveError ? "danger" : "primary"}
-        size="md"
-        isDisabled={isSubmitting}
-        onPress={onPress}
-      >
-        {isSubmitting ? (
-          <Spinner size="sm" color="white" />
-        ) : (
-          <Button.Label>Unleash the Split</Button.Label>
-        )}
-      </Button>
-    </Animated.View>
   );
 }

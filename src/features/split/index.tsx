@@ -21,7 +21,7 @@ export default function SplitPage() {
 
   return (
     <View className="flex-1 bg-background">
-      <CollapsedLargeHeader title="Split the Damage" leading={<GoBackButton />}>
+      <CollapsedLargeHeader title="Create Split" leading={<GoBackButton />}>
         <View className="px-4 pb-8 pt-2">
           <SplitForm onSubmit={handleSubmit} />
         </View>

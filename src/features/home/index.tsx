@@ -18,12 +18,7 @@ import { SplitListSkeleton } from "../split/components/SplitListSkeleton";
 
 export default function Home() {
   const { data: session } = useSession();
-  const {
-    data: payments,
-    isLoading,
-    isError,
-    isFetching,
-  } = usePaymentsList();
+  const { data: payments, isLoading, isError, isFetching } = usePaymentsList();
 
   const sortedPayments = useMemo(() => {
     const list = payments ?? [];

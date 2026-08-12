@@ -1,5 +1,5 @@
 import { BlurTargetView, BlurView } from "expo-blur";
-import { type ReactNode, useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import {
   Platform,
   ScrollView,
@@ -102,7 +102,7 @@ export default function CollapsingLargeHeader({
         {
           flexGrow: 1,
           paddingTop: insets.top + 8,
-          paddingBottom: 32,
+          paddingBottom: 72,
         },
         contentContainerStyle,
       ]}

@@ -227,25 +227,25 @@ export const SPLIT_METHODS: {
 }[] = [
   {
     value: "equal",
-    label: "Fair & Square",
+    label: "Equal",
     description: "Split the total evenly between everyone.",
     available: true,
   },
   {
     value: "itemized",
-    label: "Itemized Interrogation",
-    description: "Interrogate the receipt, item by item.",
+    label: "Itemized",
+    description: "Split based on specific items.",
     available: true,
   },
   {
     value: "percentage",
-    label: "Percentage Power Play",
+    label: "Percentage",
     description: "Assign a percentage share to each person.",
     available: true,
   },
   {
     value: "custom",
-    label: "Whatever, I'll Just Type It",
+    label: "Custom",
     description: "Set exact amounts manually.",
     available: true,
   },

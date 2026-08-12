@@ -131,6 +131,49 @@ export function getFieldDisplayError(
   return undefined;
 }
 
+/** Merge TanStack field errors with wizard step errors (step errors take priority). */
+export function resolveFieldError(
+  fieldName: string,
+  fieldErrors: unknown[],
+  fieldMeta: Record<string, FieldMetaLike | undefined> | undefined,
+  stepFieldErrors?: Record<string, string>,
+): string | undefined {
+  const stepError = stepFieldErrors?.[fieldName];
+  if (stepError) return stepError;
+
+  return getFieldDisplayError(fieldName, fieldErrors, fieldMeta);
+}
+
+/** Whether a field (or any of its nested paths, e.g. `items[0].name`) has a validation error. */
+export function fieldHasError(
+  fieldName: string,
+  fieldMeta: Record<string, FieldMetaLike | undefined> | undefined,
+): boolean {
+  if (!fieldMeta) return false;
+
+  for (const [path, meta] of Object.entries(fieldMeta)) {
+    if (
+      path === fieldName ||
+      path.startsWith(`${fieldName}[`) ||
+      path.startsWith(`${fieldName}.`)
+    ) {
+      if (getFieldError(meta?.errors ?? [])) return true;
+    }
+  }
+
+  return false;
+}
+
+/** Given ordered groups of field names (e.g. one group per wizard step), find the index of the first group containing an error. Returns -1 if none do. */
+export function getFirstErroredGroupIndex(
+  fieldGroups: string[][],
+  fieldMeta: Record<string, FieldMetaLike | undefined> | undefined,
+): number {
+  return fieldGroups.findIndex((fields) =>
+    fields.some((fieldName) => fieldHasError(fieldName, fieldMeta)),
+  );
+}
+
 export type ItemRowErrors = {
   name?: string;
   unitPriceCents?: string;

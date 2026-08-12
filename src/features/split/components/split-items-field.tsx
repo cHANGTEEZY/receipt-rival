@@ -50,7 +50,10 @@ export function SplitItemsField({
   };
 
   return (
-    <View className="gap-4">
+    <View
+      className={`gap-4 ${error ? "rounded-2xl border border-danger p-3" : ""}`}
+      style={error ? { borderCurve: "continuous" } : undefined}
+    >
       {value.length === 0 ? (
         <Typography type="body-sm" color="muted">
           No items yet. Add line items from the receipt.

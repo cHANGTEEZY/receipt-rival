@@ -64,7 +64,7 @@ export function SplitItemAssignmentsField({
   if (friendIds.length === 0) {
     return (
       <Typography type="body-sm" color="muted">
-        Name the accomplices first, then come back to assign the guilt.
+        Select friends first, then come back to assign items.
       </Typography>
     );
   }
@@ -72,13 +72,16 @@ export function SplitItemAssignmentsField({
   if (filledItems.length === 0) {
     return (
       <Typography type="body-sm" color="muted">
-        Autopsy the receipt first — add some items, then assign them here.
+        Add items first, then assign them here.
       </Typography>
     );
   }
 
   return (
-    <View className="gap-4">
+    <View
+      className={`gap-4 ${error ? "rounded-2xl border border-danger p-3" : ""}`}
+      style={error ? { borderCurve: "continuous" } : undefined}
+    >
       {filledItems.map((item) => {
         const assignment = value.find((a) => a.itemLocalId === item.localId);
         const allocations = assignment?.allocations ?? [];
@@ -132,7 +135,7 @@ export function SplitItemAssignmentsField({
             <View className="flex-row items-center justify-between gap-2">
               <View className="flex-1">
                 <Typography type="body-sm" weight="semibold" numberOfLines={1}>
-                  {item.name || "Unnamed suspect"}
+                  {item.name || "Unnamed item"}
                 </Typography>
                 <Typography type="body-xs" color="muted">
                   {formatMoney(item.unitPriceCents, currency)} × {item.quantity}
@@ -208,7 +211,6 @@ export function SplitItemAssignmentsField({
               className={isComplete ? undefined : "text-danger"}
             >
               {assignedQuantity} of {item.quantity} units assigned
-              {isComplete ? " — nobody gets away clean." : ""}
             </Typography>
           </View>
         );
