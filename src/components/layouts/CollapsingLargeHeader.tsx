@@ -33,6 +33,7 @@ const ANDROID_BLUR_METHOD = "dimezisBlurView" as const;
 
 type CollapsingLargeHeaderProps = {
   title: string;
+  leading?: ReactNode;
   trailing?: ReactNode;
   children: ReactNode;
   contentContainerStyle?: ViewStyle;
@@ -40,6 +41,7 @@ type CollapsingLargeHeaderProps = {
 
 export default function CollapsingLargeHeader({
   title,
+  leading,
   trailing,
   children,
   contentContainerStyle,
@@ -116,6 +118,7 @@ export default function CollapsingLargeHeader({
       showsHorizontalScrollIndicator={false}
     >
       <Animated.View style={[styles.expandedRow, largeTitleStyle]}>
+        {leading ? <View style={styles.leadingSlot}>{leading}</View> : null}
         <View style={styles.largeTitleWrap}>
           <Typography
             type="h1"
@@ -244,6 +247,9 @@ const styles = StyleSheet.create({
   compactTitleText: {
     width: "100%",
     textAlign: "center",
+  },
+  leadingSlot: {
+    marginRight: 8,
   },
   trailingSlot: {
     marginLeft: 8,

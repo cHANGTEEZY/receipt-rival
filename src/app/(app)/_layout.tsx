@@ -3,6 +3,7 @@ import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { ActivityIndicator, View } from "react-native";
 import { useCSSVariable } from "uniwind";
 
+import { SwipeMenuShell } from "@/features/swipe-menu";
 import {
   useScreenBackgroundColor,
   useStackContentStyle,
@@ -36,69 +37,71 @@ export default function AppLayout() {
   }
 
   return (
-    <NativeTabs
-      minimizeBehavior="onScrollDown"
-      disableTransparentOnScrollEdge
-      backgroundColor={backgroundColor}
-      unstable_nativeProps={
-        backgroundColor
-          ? { nativeContainerStyle: { backgroundColor } }
-          : undefined
-      }
-      tintColor={typeof accentColor === "string" ? accentColor : undefined}
-      iconColor={
-        typeof mutedColor === "string"
-          ? { default: mutedColor, selected: accentColor as string }
-          : undefined
-      }
-      labelStyle={
-        typeof mutedColor === "string"
-          ? {
-              default: { color: mutedColor },
-              selected: {
-                color:
-                  typeof accentColor === "string" ? accentColor : mutedColor,
-              },
-            }
-          : undefined
-      }
-    >
-      <NativeTabs.Trigger
-        name="home"
+    <SwipeMenuShell>
+      <NativeTabs
+        minimizeBehavior="onScrollDown"
         disableTransparentOnScrollEdge
-        disableAutomaticContentInsets
-        contentStyle={tabContentStyle}
+        backgroundColor={backgroundColor}
+        unstable_nativeProps={
+          backgroundColor
+            ? { nativeContainerStyle: { backgroundColor } }
+            : undefined
+        }
+        tintColor={typeof accentColor === "string" ? accentColor : undefined}
+        iconColor={
+          typeof mutedColor === "string"
+            ? { default: mutedColor, selected: accentColor as string }
+            : undefined
+        }
+        labelStyle={
+          typeof mutedColor === "string"
+            ? {
+                default: { color: mutedColor },
+                selected: {
+                  color:
+                    typeof accentColor === "string" ? accentColor : mutedColor,
+                },
+              }
+            : undefined
+        }
       >
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          sf={{ default: "house", selected: "house.fill" }}
-          md={{ default: "home", selected: "home" }}
-        />
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger
-        name="friends"
-        disableTransparentOnScrollEdge
-        disableAutomaticContentInsets
-        contentStyle={tabContentStyle}
-      >
-        <NativeTabs.Trigger.Label>Friends</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          sf={{ default: "person", selected: "person.fill" }}
-          md={{ default: "person", selected: "person_2" }}
-        />
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger
-        name="explore"
-        disableTransparentOnScrollEdge
-        disableAutomaticContentInsets
-        contentStyle={tabContentStyle}
-      >
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          sf={{ default: "sparkles", selected: "sparkles" }}
-          md={{ default: "explore", selected: "explore" }}
-        />
-      </NativeTabs.Trigger>
-    </NativeTabs>
+        <NativeTabs.Trigger
+          name="home"
+          disableTransparentOnScrollEdge
+          disableAutomaticContentInsets
+          contentStyle={tabContentStyle}
+        >
+          <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            sf={{ default: "house", selected: "house.fill" }}
+            md={{ default: "home", selected: "home" }}
+          />
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger
+          name="friends"
+          disableTransparentOnScrollEdge
+          disableAutomaticContentInsets
+          contentStyle={tabContentStyle}
+        >
+          <NativeTabs.Trigger.Label>Friends</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            sf={{ default: "person", selected: "person.fill" }}
+            md={{ default: "person", selected: "person_2" }}
+          />
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger
+          name="explore"
+          disableTransparentOnScrollEdge
+          disableAutomaticContentInsets
+          contentStyle={tabContentStyle}
+        >
+          <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            sf={{ default: "sparkles", selected: "sparkles" }}
+            md={{ default: "explore", selected: "explore" }}
+          />
+        </NativeTabs.Trigger>
+      </NativeTabs>
+    </SwipeMenuShell>
   );
 }

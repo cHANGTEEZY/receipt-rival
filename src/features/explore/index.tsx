@@ -9,6 +9,7 @@ import {
   SlideToComplete,
   type SlideToCompleteHandle,
 } from "@/components/SlideToComplete";
+import { SwipeMenuButton } from "@/features/swipe-menu";
 
 import { Typography } from "heroui-native/text";
 
@@ -24,7 +25,7 @@ export default function Explore() {
   return (
     <View className="flex-1 bg-background">
       <MeshBackground />
-      <CollapsingLargeHeader title="Explore">
+      <CollapsingLargeHeader title="Explore" leading={<SwipeMenuButton />}>
         <View className="gap-4 px-4">
           <Typography type="body" color="muted">
             Shared components from the boilerplate foundation — skeleton loaders,

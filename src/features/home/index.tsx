@@ -7,6 +7,7 @@ import CollapsingLargeHeader from "@/components/layouts/CollapsingLargeHeader";
 import MeshBackground from "@/components/MeshBackground";
 import ProfileButton from "@/components/ProfileButton";
 import SplitFab from "@/components/SplitFab";
+import { SwipeMenuButton } from "@/features/swipe-menu";
 import { useSession } from "@/lib/auth-client";
 import { hapticSelection } from "@/lib/haptics";
 
@@ -33,6 +34,7 @@ export default function Home() {
       <MeshBackground />
       <CollapsingLargeHeader
         title="Splits"
+        leading={<SwipeMenuButton />}
         trailing={
           <ProfileButton onPress={() => router.push("/(screens)/settings")} />
         }
