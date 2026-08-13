@@ -18,6 +18,10 @@ import { useCSSVariable } from "uniwind";
 import HapticPressable from "@/components/HapticButton";
 
 import {
+  GlassControl,
+  GlassControlContainer,
+} from "@/components/layouts/GlassControl";
+import {
   FAB_BACKDROP_TRANSITION,
   FAB_EDGE_MARGIN,
   FAB_HEADER_INSET,
@@ -61,7 +65,11 @@ function isScreenHidden(pathname: string, hiddenOnScreens?: string[]): boolean {
 
   return hiddenOnScreens.some((name) => {
     const withSlash = name.startsWith("/") ? name : `/${name}`;
-    return pathname === name || pathname === withSlash || pathname.endsWith(withSlash);
+    return (
+      pathname === name ||
+      pathname === withSlash ||
+      pathname.endsWith(withSlash)
+    );
   });
 }
 
@@ -178,8 +186,8 @@ export function Fab({
       <FabContext.Provider
         value={{ open, position, itemCount: items.length, closeMenu }}
       >
-        <View
-          pointerEvents="box-none"
+        <GlassControlContainer
+          spacing={FAB_ITEM_GAP}
           style={[
             styles.anchor,
             cornerStyle,
@@ -190,35 +198,37 @@ export function Fab({
             },
           ]}
         >
-          <HapticPressable
-            accessibilityRole="button"
-            accessibilityLabel={testID ?? "Floating action button"}
-            disabled={disabled}
-            haptic={{ type: isMenuMode ? "selection" : "impact" }}
-            onPress={handleMainPress}
-            className="items-center justify-center rounded-full bg-accent shadow-overlay"
-            style={{
-              width: size,
-              height: size,
-              borderCurve: "continuous",
-              opacity: disabled ? 0.5 : 1,
-            }}
-          >
-            <EaseView
-              animate={{ rotate: isMenuMode && open ? 45 : 0 }}
-              transition={FAB_OPEN_TRANSITION}
+          <GlassControl size={size} tintColor="#3B82F6">
+            <HapticPressable
+              accessibilityRole="button"
+              accessibilityLabel={testID ?? "Floating action button"}
+              disabled={disabled}
+              haptic={{ type: isMenuMode ? "selection" : "impact" }}
+              onPress={handleMainPress}
+              className="items-center justify-center rounded-full"
+              style={{
+                width: size,
+                height: size,
+                borderCurve: "continuous",
+                opacity: disabled ? 0.5 : 1,
+              }}
             >
-              <HugeiconsIcon
-                icon={icon}
-                size={24}
-                color={iconColor}
-                strokeWidth={2}
-              />
-            </EaseView>
-          </HapticPressable>
+              <EaseView
+                animate={{ rotate: isMenuMode && open ? 45 : 0 }}
+                transition={FAB_OPEN_TRANSITION}
+              >
+                <HugeiconsIcon
+                  icon={icon}
+                  size={24}
+                  color={iconColor}
+                  strokeWidth={2}
+                />
+              </EaseView>
+            </HapticPressable>
+          </GlassControl>
 
           {clonedItems}
-        </View>
+        </GlassControlContainer>
       </FabContext.Provider>
     </View>
   );
@@ -227,6 +237,7 @@ export function Fab({
 const styles = StyleSheet.create({
   anchor: {
     position: "absolute",
+    overflow: "visible",
   },
 });
 

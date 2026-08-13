@@ -13,8 +13,12 @@ import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 
 import { Typography } from "heroui-native/text";
 
+import { GlassControl } from "./GlassControl";
+
 const BAR_CONTENT_HEIGHT = 44;
-const SIDE_INSET = 56;
+const BAR_BOTTOM_PADDING = 12;
+const BAR_HORIZONTAL_PADDING = 16;
+const SIDE_INSET = 64;
 const ANDROID_BLUR_METHOD = "dimezisBlurView" as const;
 
 type CollapsedLargeHeaderProps = {
@@ -35,12 +39,16 @@ export default function CollapsedLargeHeader({
   const insets = useSafeAreaInsets();
   const scheme = useAppColorScheme();
   const blurTargetRef = useRef<View | null>(null);
-  const barHeight = insets.top + BAR_CONTENT_HEIGHT;
+  const barHeight = insets.top + BAR_CONTENT_HEIGHT + BAR_BOTTOM_PADDING;
   const isDark = scheme === "dark";
 
   return (
-    <View style={styles.root}>
-      <BlurTargetView ref={blurTargetRef} style={styles.scroll}>
+    <View collapsable={false} style={styles.root}>
+      <BlurTargetView
+        collapsable={false}
+        ref={blurTargetRef}
+        style={styles.scroll}
+      >
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={[
@@ -98,13 +106,21 @@ export default function CollapsedLargeHeader({
 
             <View style={styles.controlsRow} pointerEvents="box-none">
               <View style={styles.sideSlot} pointerEvents="box-none">
-                {leading}
+                {leading ? (
+                  <GlassControl blurTargetRef={blurTargetRef}>
+                    {leading}
+                  </GlassControl>
+                ) : null}
               </View>
               <View
                 style={[styles.sideSlot, styles.trailingSlot]}
                 pointerEvents="box-none"
               >
-                {trailing}
+                {trailing ? (
+                  <GlassControl blurTargetRef={blurTargetRef}>
+                    {trailing}
+                  </GlassControl>
+                ) : null}
               </View>
             </View>
           </View>
@@ -125,14 +141,19 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 20,
-    overflow: "hidden",
+    overflow: "visible",
   },
   bar: {
-    height: BAR_CONTENT_HEIGHT,
+    height: BAR_CONTENT_HEIGHT + BAR_BOTTOM_PADDING,
     justifyContent: "center",
+    paddingBottom: BAR_BOTTOM_PADDING,
   },
   titleLayer: {
-    ...StyleSheet.absoluteFill,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: BAR_CONTENT_HEIGHT,
     zIndex: 1,
     alignItems: "center",
     justifyContent: "center",
@@ -147,7 +168,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 8,
+    paddingHorizontal: BAR_HORIZONTAL_PADDING,
   },
   sideSlot: {
     minWidth: 44,

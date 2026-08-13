@@ -4,10 +4,15 @@ import { EaseView } from "react-native-ease/uniwind";
 import { useCSSVariable } from "uniwind";
 
 import HapticPressable from "@/components/HapticButton";
+import { GlassControl } from "@/components/layouts/GlassControl";
 
 import { Typography } from "heroui-native/text";
 
-import { FAB_ITEM_SIZE, FAB_OPEN_TRANSITION, FAB_STAGGER_MS } from "./constants";
+import {
+  FAB_ITEM_SIZE,
+  FAB_OPEN_TRANSITION,
+  FAB_STAGGER_MS,
+} from "./constants";
 import { useFabContext } from "./FabContext";
 import type { IconData } from "./types";
 
@@ -16,6 +21,12 @@ export type FabItemProps = {
   icon: IconData;
   /** Optional label pill shown on the inner side of the icon. */
   label?: string;
+  /**
+   * Circle fill. Use hex or rgba (`#FFFFFF`, `#3B82F6`, `rgba(255,255,255,0.92)`).
+   * Native glass cannot read CSS `oklch()` theme tokens.
+   * @default "#FFFFFF"
+   */
+  color?: string;
   onPress: () => void;
   testID?: string;
 };
@@ -32,6 +43,7 @@ export type InternalFabItemProps = FabItemProps & {
 export function FabItem({
   icon,
   label,
+  color = "#FFFFFF",
   onPress,
   testID,
   __index = 0,
@@ -53,56 +65,73 @@ export function FabItem({
   };
 
   return (
-    <EaseView
+    <View
       pointerEvents={open ? "auto" : "none"}
       style={{
         flexDirection: isRight ? "row-reverse" : "row",
         alignItems: "center",
         gap: 10,
+        overflow: "visible",
       }}
-      initialAnimate={{ opacity: 0, scale: 0.6, translateY: 10 }}
-      animate={{
-        opacity: open ? 1 : 0,
-        scale: open ? 1 : 0.6,
-        translateY: open ? 0 : 10,
-      }}
-      transition={{ ...FAB_OPEN_TRANSITION, delay }}
     >
       {label ? (
-        <View
-          className="rounded-full bg-surface px-3 py-1.5 shadow-surface"
-          style={{ borderCurve: "continuous" }}
+        <EaseView
+          pointerEvents={open ? "auto" : "none"}
+          initialAnimate={{ opacity: 0, translateY: 10 }}
+          animate={{
+            opacity: open ? 1 : 0,
+            translateY: open ? 0 : 10,
+          }}
+          transition={{ ...FAB_OPEN_TRANSITION, delay }}
         >
-          <Typography
-            type="body-sm"
-            weight="medium"
-            className="text-foreground"
+          <View
+            className="rounded-full bg-surface px-3 py-1.5 shadow-surface"
+            style={{ borderCurve: "continuous" }}
           >
-            {label}
-          </Typography>
-        </View>
+            <Typography
+              type="body-sm"
+              weight="medium"
+              className="text-foreground"
+            >
+              {label}
+            </Typography>
+          </View>
+        </EaseView>
       ) : null}
 
-      <HapticPressable
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        testID={testID}
-        haptic={{ type: "selection" }}
-        onPress={handlePress}
-        className="items-center justify-center rounded-full bg-surface shadow-surface"
-        style={{
-          width: FAB_ITEM_SIZE,
-          height: FAB_ITEM_SIZE,
-          borderCurve: "continuous",
+      <EaseView
+        pointerEvents={open ? "auto" : "none"}
+        style={{ overflow: "visible" }}
+        initialAnimate={{ scale: 0.6, translateY: 10 }}
+        animate={{
+          scale: open ? 1 : 0,
+          translateY: open ? 0 : 10,
         }}
+        transition={{ ...FAB_OPEN_TRANSITION, delay }}
       >
-        <HugeiconsIcon
-          icon={icon}
-          size={22}
-          color={iconColor}
-          strokeWidth={1.75}
-        />
-      </HapticPressable>
-    </EaseView>
+        <GlassControl size={FAB_ITEM_SIZE} tintColor={color} active={open}>
+          <HapticPressable
+            accessibilityRole="button"
+            accessibilityLabel={label}
+            testID={testID}
+            haptic={{ type: "selection" }}
+            onPress={handlePress}
+            className="items-center justify-center rounded-full"
+            style={{
+              width: FAB_ITEM_SIZE,
+              height: FAB_ITEM_SIZE,
+              borderCurve: "continuous",
+            }}
+          >
+            <HugeiconsIcon
+              icon={icon}
+              size={22}
+              color={iconColor}
+              strokeWidth={1.75}
+            />
+          </HapticPressable>
+        </GlassControl>
+      </EaseView>
+    </View>
   );
 }

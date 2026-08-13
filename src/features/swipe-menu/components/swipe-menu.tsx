@@ -1,14 +1,8 @@
 import { Home01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import {
-  GlassContainer,
-  GlassView,
-  isGlassEffectAPIAvailable,
-  isLiquidGlassAvailable,
-} from "expo-glass-effect";
+import { GlassContainer, GlassView } from "expo-glass-effect";
 import { type Href, usePathname, useRouter } from "expo-router";
 import {
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -20,6 +14,7 @@ import Animated, { type AnimatedStyle } from "react-native-reanimated";
 
 import ProfileButton from "@/components/ProfileButton";
 
+import { SUPPORTS_LIQUID_GLASS } from "@/utils/platform";
 import {
   ACCOUNT_DESTINATIONS,
   MENU_TITLE,
@@ -39,11 +34,6 @@ type SwipeMenuProps = {
   safeAreaBottom: number;
   safeAreaTop: number;
 };
-
-const SUPPORTS_LIQUID_GLASS =
-  Platform.OS === "ios" &&
-  isGlassEffectAPIAvailable() &&
-  isLiquidGlassAvailable();
 
 export function SwipeMenu({
   colors,
@@ -155,10 +145,7 @@ export function SwipeMenu({
         ) : (
           <View style={styles.actionRow}>
             <View
-              style={[
-                styles.homeSurface,
-                { backgroundColor: colors.accent },
-              ]}
+              style={[styles.homeSurface, { backgroundColor: colors.accent }]}
             >
               <HomeButton colors={colors} onPress={onHomePress} />
             </View>

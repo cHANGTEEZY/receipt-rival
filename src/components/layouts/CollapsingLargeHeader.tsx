@@ -23,6 +23,8 @@ import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 
 import { Typography } from "heroui-native/text";
 
+import { GlassControl } from "./GlassControl";
+
 const COLLAPSE_DISTANCE = 56;
 const COMPACT_BAR_CONTENT_HEIGHT = 44;
 /** Large title is fully hidden once compact title begins appearing. */
@@ -118,7 +120,11 @@ export default function CollapsingLargeHeader({
       showsHorizontalScrollIndicator={false}
     >
       <Animated.View style={[styles.expandedRow, largeTitleStyle]}>
-        {leading ? <View style={styles.leadingSlot}>{leading}</View> : null}
+        {leading ? (
+          <View style={styles.leadingSlot}>
+            <GlassControl blurTargetRef={blurTargetRef}>{leading}</GlassControl>
+          </View>
+        ) : null}
         <View style={styles.largeTitleWrap}>
           <Typography
             type="h1"
@@ -129,7 +135,13 @@ export default function CollapsingLargeHeader({
             {title}
           </Typography>
         </View>
-        {trailing ? <View style={styles.trailingSlot}>{trailing}</View> : null}
+        {trailing ? (
+          <View style={styles.trailingSlot}>
+            <GlassControl blurTargetRef={blurTargetRef}>
+              {trailing}
+            </GlassControl>
+          </View>
+        ) : null}
       </Animated.View>
 
       {children}

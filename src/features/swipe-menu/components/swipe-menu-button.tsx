@@ -22,7 +22,7 @@ export function SwipeMenuButton() {
       haptic={{ type: "selection" }}
       hitSlop={8}
       onPress={swipeMenu.openMenu}
-      className="h-10 w-10 items-center justify-center rounded-full bg-surface-secondary"
+      className="h-10 w-10 items-center justify-center rounded-full"
       style={{ borderCurve: "continuous" }}
     >
       <HugeiconsIcon
