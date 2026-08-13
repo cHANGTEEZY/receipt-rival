@@ -393,6 +393,7 @@ export default function SplitDetailScreen() {
                       <FriendListItem
                         key={participant.id}
                         name={resolveName(participant.userId)}
+                        userId={participant.userId}
                         subtitle={
                           participant.isOwner
                             ? "Paid the bill"

@@ -80,6 +80,7 @@ export function SplitFriendsField({
           >
             <FriendListItem
               name={friend.name}
+              userId={friend.id}
               image={friend.image}
               subtitle={isSelected ? "Included in this split" : "Tap to include"}
               trailing={

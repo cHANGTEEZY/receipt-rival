@@ -7,6 +7,7 @@ import { UserAvatar } from "./UserAvatar";
 
 type FriendListItemProps = {
   name: string;
+  userId?: string;
   subtitle?: string;
   image?: string | null;
   trailing?: ReactNode;
@@ -14,6 +15,7 @@ type FriendListItemProps = {
 
 export function FriendListItem({
   name,
+  userId,
   subtitle,
   image,
   trailing,
@@ -23,7 +25,7 @@ export function FriendListItem({
       className="flex-row items-center gap-3 rounded-3xl bg-surface px-3 py-3"
       style={{ borderCurve: "continuous" }}
     >
-      <UserAvatar name={name} image={image} />
+      <UserAvatar name={name} userId={userId} image={image} />
 
       <View className="min-w-0 flex-1 gap-0.5">
         <Typography type="body-sm" weight="semibold" numberOfLines={1}>

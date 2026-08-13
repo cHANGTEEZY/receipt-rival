@@ -99,22 +99,22 @@ export type ItemAllocationInput = {
 };
 
 export type CreateItemBasedSplitInput = {
-  assignments: Array<{
+  assignments: {
     paymentItemId: string;
     allocations: ItemAllocationInput[];
-  }>;
+  }[];
   dueAt?: string;
   receiptImage?: ReceiptUpload | null;
 };
 
 export type CreatePercentageSplitInput = {
-  splits: Array<{ debtorUserId: string; percentage: number }>;
+  splits: { debtorUserId: string; percentage: number }[];
   dueAt?: string;
   receiptImage?: ReceiptUpload | null;
 };
 
 export type CreateCustomSplitInput = {
-  splits: Array<{ debtorUserId: string; amountCents: number }>;
+  splits: { debtorUserId: string; amountCents: number }[];
   dueAt?: string;
   receiptImage?: ReceiptUpload | null;
 };
@@ -126,11 +126,9 @@ export const splitsApi = {
   getById: (splitId: string) =>
     getJson<PaymentSplit>(ENDPOINTS.splits.detail(splitId)),
 
-  listOwedByMe: () =>
-    getJson<PaymentSplit[]>(ENDPOINTS.me.splitsOwedByMe),
+  listOwedByMe: () => getJson<PaymentSplit[]>(ENDPOINTS.me.splitsOwedByMe),
 
-  listOwedToMe: () =>
-    getJson<PaymentSplit[]>(ENDPOINTS.me.splitsOwedToMe),
+  listOwedToMe: () => getJson<PaymentSplit[]>(ENDPOINTS.me.splitsOwedToMe),
 
   createEqual: async (paymentId: string, input: CreateEqualSplitInput) => {
     const url = ENDPOINTS.payments.splits.createEqual(paymentId);
@@ -208,10 +206,7 @@ export const splitsApi = {
     return postMultipart<PaymentSplit[]>(url, formData);
   },
 
-  createCustom: async (
-    paymentId: string,
-    input: CreateCustomSplitInput,
-  ) => {
+  createCustom: async (paymentId: string, input: CreateCustomSplitInput) => {
     const url = ENDPOINTS.payments.splits.createCustom(paymentId);
 
     if (!input.receiptImage) {
@@ -231,4 +226,3 @@ export const splitsApi = {
     return postMultipart<PaymentSplit[]>(url, formData);
   },
 };
-

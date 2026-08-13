@@ -2,8 +2,10 @@ const BASE_URL_ADD_ON = "/api/v1";
 
 export const ENDPOINTS = {
   users: {
+    me: `${BASE_URL_ADD_ON}/users/me`,
     detail: (id: string) => `${BASE_URL_ADD_ON}/users/${id}`,
     search: (query: string) => `${BASE_URL_ADD_ON}/users/search?query=${query}`,
+    avatar: `${BASE_URL_ADD_ON}/users/me/avatar`,
   },
 
   payments: {

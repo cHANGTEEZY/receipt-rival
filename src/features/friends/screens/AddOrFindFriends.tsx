@@ -180,6 +180,7 @@ const AddOrFindFriends = () => {
                       <FriendListItem
                         key={user.id}
                         name={user.name}
+                        userId={user.id}
                         subtitle={user.email}
                         image={user.image}
                         trailing={
@@ -223,6 +224,7 @@ const AddOrFindFriends = () => {
                     <FriendListItem
                       key={friend.id}
                       name={friend.name}
+                      userId={friend.id}
                       subtitle="Friend"
                       image={friend.image}
                       trailing={
@@ -263,6 +265,7 @@ const AddOrFindFriends = () => {
                     <FriendListItem
                       key={request.id}
                       name={request.requester.name}
+                      userId={request.requester.id}
                       subtitle="Wants to be friends"
                       image={request.requester.image}
                       trailing={

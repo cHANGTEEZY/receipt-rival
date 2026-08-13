@@ -1,3 +1,5 @@
+import { useMe } from "@/api/hooks/use-users";
+import { publicImageUrl } from "@/api/users";
 import { useSession } from "@/lib/auth-client";
 
 import {
@@ -71,7 +73,11 @@ export default function ProfileButton({
   onPress,
 }: ProfileButtonProps) {
   const { data: session } = useSession();
-  const initials = getInitials(session?.user?.name);
+  const meQuery = useMe();
+  const initials = getInitials(meQuery.data?.name ?? session?.user?.name);
+  const imageUri = publicImageUrl(
+    meQuery.data?.image ?? session?.user?.image,
+  );
   const isSolid = variant === "default";
   const { avatarSize, rootClassName, textClassName } = resolveAvatarSize(size);
 
@@ -101,6 +107,14 @@ export default function ProfileButton({
         variant={variant}
         className={rootClasses || undefined}
       >
+        {imageUri ? (
+          <Avatar.Image
+            source={{ uri: imageUri }}
+            accessibilityLabel={
+              meQuery.data?.name ?? session?.user?.name ?? "Profile"
+            }
+          />
+        ) : null}
         {initials ? (
           <Avatar.Fallback
             classNames={{

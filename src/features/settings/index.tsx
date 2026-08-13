@@ -64,7 +64,7 @@ export default function Settings() {
               title={name}
               description={email}
               leading={<ProfileButton size="md" />}
-              trailing={null}
+              onPress={() => router.push("/(screens)/settings/account")}
             />
           </SettingsSection>
 
