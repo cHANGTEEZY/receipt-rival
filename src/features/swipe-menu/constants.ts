@@ -1,5 +1,6 @@
 import {
-  Compass01Icon,
+  AddInvoiceIcon,
+  Award01Icon,
   Home01Icon,
   PaintBrush01Icon,
   Settings01Icon,
@@ -26,12 +27,20 @@ export const NAV_DESTINATIONS = [
     isSelected: (pathname) => pathname.split("/").pop() === "friends",
   },
   {
-    id: "explore",
-    title: "Explore",
-    href: "/(app)/explore",
-    icon: Compass01Icon,
+    id: "splits",
+    title: "Splits",
+    href: "/(app)/splits",
+    icon: AddInvoiceIcon,
     isSelected: (pathname) =>
-      pathname === "/explore" || pathname.endsWith("/explore"),
+      pathname === "/splits" || pathname.endsWith("/splits"),
+  },
+  {
+    id: "ranks",
+    title: "Ranks",
+    href: "/(app)/ranks",
+    icon: Award01Icon,
+    isSelected: (pathname) =>
+      pathname === "/ranks" || pathname.endsWith("/ranks"),
   },
 ] satisfies readonly SwipeMenuDestination[];
 

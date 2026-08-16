@@ -1,5 +1,18 @@
 export { ENDPOINTS } from "@/api/endpoints";
+export { deadbeatApi } from "@/api/deadbeat";
+export type {
+  DeadbeatBoard,
+  DeadbeatLeaderboard,
+  DeadbeatLeaderboardEntry,
+  DeadbeatMeSummary,
+  DeadbeatPublicUser,
+  RankBoardKind,
+} from "@/api/deadbeat";
 export { friendsApi } from "@/api/friends";
+export {
+  DEADBEAT_QUERY_KEYS,
+  useDeadbeatLeaderboard,
+} from "@/api/hooks/use-deadbeat";
 export {
   invalidatePaymentQueries,
   usePayment,

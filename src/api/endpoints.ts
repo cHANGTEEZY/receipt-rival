@@ -52,6 +52,10 @@ export const ENDPOINTS = {
     splitsOwedToMe: `${BASE_URL_ADD_ON}/me/splits/owed-to-me`,
   },
 
+  deadbeat: {
+    leaderboard: `${BASE_URL_ADD_ON}/deadbeat/leaderboard`,
+  },
+
   friends: {
     list: `${BASE_URL_ADD_ON}/friends`,
     listIncomingRequests: `${BASE_URL_ADD_ON}/friends/requests`,

@@ -5,46 +5,39 @@ import { Pressable, View } from "react-native";
 import { useCSSVariable } from "uniwind";
 
 import type { Payment } from "@/api/payments";
+import type { PaymentSplit } from "@/api/splits";
 import { getInitials } from "@/features/friends/lib/friendship-status";
-import { formatMoney, formatShortDate } from "@/utils/money";
+import { formatMoney } from "@/utils/money";
 
 import { Typography } from "heroui-native/text";
 
-import { paymentStatusLabel } from "../lib/status";
-
-type SplitListItemProps = {
-  payment: Payment;
+type SplitBalanceRowProps = {
+  split: PaymentSplit;
+  payment?: Payment;
+  counterpartName: string;
+  youOwe: boolean;
   onPress: () => void;
 };
 
-function statusTextClass(status: Payment["status"]): string {
-  switch (status) {
-    case "completed":
-      return "text-success";
-    case "finalized":
-      return "text-accent";
-    case "draft":
-      return "text-warning";
-    case "cancelled":
-      return "text-muted";
-    default:
-      return "text-muted";
-  }
-}
-
-export function SplitListItem({ payment, onPress }: SplitListItemProps) {
+export function SplitBalanceRow({
+  split,
+  payment,
+  counterpartName,
+  youOwe,
+  onPress,
+}: SplitBalanceRowProps) {
   const accent = useCSSVariable("--color-accent");
   const iconColor = typeof accent === "string" ? accent : "#3b82f6";
-  const initials = getInitials(payment.title);
-  const subtitleParts = [
-    payment.dueAt ? `Due ${formatShortDate(payment.dueAt)}` : null,
-    payment.locationName,
-  ].filter(Boolean);
+  const title = payment?.title?.trim() || "Split";
+  const initials = getInitials(title);
+  const subtitle = youOwe
+    ? `You owe ${counterpartName}`
+    : `${counterpartName} owes you`;
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Open split ${payment.title}`}
+      accessibilityLabel={`${subtitle} for ${title}`}
       onPress={onPress}
     >
       <View
@@ -52,7 +45,7 @@ export function SplitListItem({ payment, onPress }: SplitListItemProps) {
         style={{ borderCurve: "continuous" }}
       >
         <View className="size-12 items-center justify-center overflow-hidden rounded-full bg-accent/15">
-          {payment.receiptImageUrl ? (
+          {payment?.receiptImageUrl ? (
             <Image
               source={{ uri: payment.receiptImageUrl }}
               style={{ width: 48, height: 48 }}
@@ -74,24 +67,24 @@ export function SplitListItem({ payment, onPress }: SplitListItemProps) {
 
         <View className="min-w-0 flex-1 gap-0.5">
           <Typography type="body" weight="semibold" numberOfLines={1}>
-            {payment.title}
+            {title}
           </Typography>
           <Typography type="body-sm" color="muted" numberOfLines={1}>
-            {subtitleParts.length > 0
-              ? subtitleParts.join(" · ")
-              : paymentStatusLabel(payment.status)}
+            {subtitle}
           </Typography>
         </View>
 
         <View className="shrink-0 items-end gap-0.5">
-          <Typography type="body-sm" weight="semibold">
-            {formatMoney(payment.totalAmountCents, payment.currency)}
-          </Typography>
           <Typography
-            type="body-xs"
-            className={statusTextClass(payment.status)}
+            type="body-sm"
+            weight="semibold"
+            className={youOwe ? "text-danger" : "text-success"}
           >
-            {paymentStatusLabel(payment.status)}
+            {youOwe ? "−" : "+"}
+            {formatMoney(split.amountCents, split.currency)}
+          </Typography>
+          <Typography type="body-xs" color="muted">
+            Pending
           </Typography>
         </View>
       </View>

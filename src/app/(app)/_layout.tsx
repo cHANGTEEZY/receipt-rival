@@ -90,15 +90,27 @@ export default function AppLayout() {
           />
         </NativeTabs.Trigger>
         <NativeTabs.Trigger
-          name="explore"
+          name="splits"
           disableTransparentOnScrollEdge
           disableAutomaticContentInsets
           contentStyle={tabContentStyle}
         >
-          <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Label>Splits</NativeTabs.Trigger.Label>
           <NativeTabs.Trigger.Icon
-            sf={{ default: "sparkles", selected: "sparkles" }}
-            md={{ default: "explore", selected: "explore" }}
+            sf={{ default: "doc.text", selected: "doc.text.fill" }}
+            md={{ default: "receipt", selected: "receipt" }}
+          />
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger
+          name="ranks"
+          disableTransparentOnScrollEdge
+          disableAutomaticContentInsets
+          contentStyle={tabContentStyle}
+        >
+          <NativeTabs.Trigger.Label>Ranks</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            sf={{ default: "trophy", selected: "trophy.fill" }}
+            md={{ default: "emoji_events", selected: "emoji_events" }}
           />
         </NativeTabs.Trigger>
       </NativeTabs>

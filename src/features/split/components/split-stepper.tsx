@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Fragment, useEffect } from "react";
 import { View } from "react-native";
 import { EaseView } from "react-native-ease/uniwind";
 import Animated, {
@@ -33,10 +33,9 @@ function useThemeHex(variable: string, fallback: string): string {
   return typeof value === "string" ? value : fallback;
 }
 
-function StepSegment({ status }: { status: StepStatus }) {
+function StepNode({ status }: { status: StepStatus }) {
   const borderColor = useThemeHex("--color-border", "#e4e4e7");
   const accentColor = useThemeHex("--color-accent", "#3b82f6");
-
   const progress = useSharedValue(status === "upcoming" ? 0 : 1);
 
   useEffect(() => {
@@ -51,13 +50,36 @@ function StepSegment({ status }: { status: StepStatus }) {
       [0, 1],
       [borderColor, accentColor],
     ),
+    transform: [{ scale: status === "active" ? 1.15 : 1 }],
   }));
 
   return (
     <Animated.View
-      className="h-1.5 flex-1 rounded-full"
+      className="size-3 rounded-full"
       style={animatedStyle}
     />
+  );
+}
+
+function StepLine({ filled }: { filled: boolean }) {
+  const borderColor = useThemeHex("--color-border", "#e4e4e7");
+  const accentColor = useThemeHex("--color-accent", "#3b82f6");
+  const progress = useSharedValue(filled ? 1 : 0);
+
+  useEffect(() => {
+    progress.value = withTiming(filled ? 1 : 0, { duration: 260 });
+  }, [filled, progress]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      progress.value,
+      [0, 1],
+      [borderColor, accentColor],
+    ),
+  }));
+
+  return (
+    <Animated.View className="mx-1 h-0.5 flex-1 rounded-full" style={animatedStyle} />
   );
 }
 
@@ -77,24 +99,22 @@ export function SplitStepHeader({ steps, currentIndex }: SplitStepHeaderProps) {
 
   return (
     <View className="gap-4">
-      <View className="flex-row items-center gap-3">
-        <View className="flex-1 flex-row gap-1.5">
-          {steps.map((step, index) => (
-            <StepSegment
-              key={step.id}
-              status={
-                index < currentIndex
-                  ? "done"
-                  : index === currentIndex
-                    ? "active"
-                    : "upcoming"
-              }
-            />
-          ))}
-        </View>
-        <Typography type="body-xs" color="muted">
-          {currentIndex + 1}/{steps.length}
-        </Typography>
+      <View className="flex-row items-center">
+        {steps.map((step, index) => {
+          const status: StepStatus =
+            index < currentIndex
+              ? "done"
+              : index === currentIndex
+                ? "active"
+                : "upcoming";
+
+          return (
+            <Fragment key={step.id}>
+              {index > 0 ? <StepLine filled={index <= currentIndex} /> : null}
+              <StepNode status={status} />
+            </Fragment>
+          );
+        })}
       </View>
 
       {currentStep ? (
@@ -171,7 +191,7 @@ export function SplitStepFooter({
             size="md"
             isDisabled={isSubmitting}
             onPress={onBack}
-            className="w-full"
+            className="w-full rounded-full"
           >
             <Button.Label>Back</Button.Label>
           </Button>
@@ -189,7 +209,7 @@ export function SplitStepFooter({
             size="md"
             isDisabled={isSubmitting}
             onPress={onNext}
-            className="w-full"
+            className="w-full rounded-full"
           >
             {isSubmitting ? (
               <Spinner size="sm" color="white" />

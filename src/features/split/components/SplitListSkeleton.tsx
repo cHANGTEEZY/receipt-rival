@@ -9,19 +9,23 @@ type SplitListSkeletonProps = {
 
 export function SplitListSkeleton({ count = 4 }: SplitListSkeletonProps) {
   return (
-    <View className="gap-3">
+    <View className="gap-2">
       {Array.from({ length: count }, (_, index) => (
         <Animated.View
           key={index}
           entering={FadeIn.delay(index * 40).duration(240)}
-          className="gap-2 rounded-3xl bg-surface px-4 py-3.5"
+          className="flex-row items-center gap-3 rounded-3xl bg-surface px-3.5 py-3"
           style={{ borderCurve: "continuous" }}
         >
-          <View className="flex-row items-center justify-between gap-3">
-            <SkeletonText width="w-40" className="h-4" />
-            <SkeletonText width="w-16" className="h-5" />
+          <View className="size-12 rounded-full bg-default/40" />
+          <View className="min-w-0 flex-1 gap-2">
+            <SkeletonText width="w-36" className="h-4" />
+            <SkeletonText width="w-24" className="h-3" />
           </View>
-          <SkeletonText width="w-56" className="h-3" />
+          <View className="items-end gap-2">
+            <SkeletonText width="w-16" className="h-4" />
+            <SkeletonText width="w-12" className="h-3" />
+          </View>
         </Animated.View>
       ))}
     </View>

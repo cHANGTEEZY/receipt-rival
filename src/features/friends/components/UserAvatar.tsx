@@ -7,7 +7,7 @@ type UserAvatarProps = {
   name: string;
   userId?: string;
   image?: string | null;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
 };
 
 export function UserAvatar({
@@ -19,7 +19,7 @@ export function UserAvatar({
   const uri = publicImageUrl(image);
 
   return (
-    <Avatar size={size === "sm" ? "sm" : "md"} color="accent" variant="soft">
+    <Avatar size={size} color="accent" variant="soft">
       {uri ? (
         <Avatar.Image source={{ uri }} accessibilityLabel={name} />
       ) : null}

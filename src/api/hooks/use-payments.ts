@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { DEADBEAT_QUERY_KEYS } from "./use-deadbeat";
 import { paymentsApi } from "../payments";
 import { settlementsApi } from "../settlements";
 import { splitsApi } from "../splits";
@@ -24,6 +25,7 @@ export function invalidatePaymentQueries(
   queryClient.invalidateQueries({ queryKey: PAYMENTS_QUERY_KEYS.list });
   queryClient.invalidateQueries({ queryKey: PAYMENTS_QUERY_KEYS.owedByMe });
   queryClient.invalidateQueries({ queryKey: PAYMENTS_QUERY_KEYS.owedToMe });
+  queryClient.invalidateQueries({ queryKey: DEADBEAT_QUERY_KEYS.leaderboard });
 
   if (paymentId) {
     queryClient.invalidateQueries({
