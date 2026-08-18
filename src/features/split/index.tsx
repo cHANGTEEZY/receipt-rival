@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 
 import { invalidatePaymentQueries } from "@/api/hooks/use-payments";
@@ -12,6 +12,10 @@ import { createSplit } from "./lib/create-split";
 
 export default function SplitPage() {
   const queryClient = useQueryClient();
+  const params = useLocalSearchParams<{ friendId?: string | string[] }>();
+  const friendId = Array.isArray(params.friendId)
+    ? params.friendId[0]
+    : params.friendId;
 
   const handleSubmit = async (values: SplitFormSchema) => {
     const result = await createSplit(values);
@@ -23,7 +27,10 @@ export default function SplitPage() {
     <View className="flex-1 bg-background">
       <CollapsedLargeHeader title="Create Split" leading={<GoBackButton />}>
         <View className="px-4 pb-8 pt-2">
-          <SplitForm onSubmit={handleSubmit} />
+          <SplitForm
+            initialFriendIds={friendId ? [friendId] : undefined}
+            onSubmit={handleSubmit}
+          />
         </View>
       </CollapsedLargeHeader>
     </View>

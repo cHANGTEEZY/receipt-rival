@@ -1,8 +1,12 @@
 import { type ReactNode } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
+
+import { SwipeableRow } from "@/components/SwipeableRow";
 
 import { Typography } from "heroui-native/text";
 
+import { useFriendSwipeActions } from "../hooks/use-friend-swipe-actions";
+import type { FriendshipUIStatus } from "../lib/friendship-status";
 import { UserAvatar } from "./UserAvatar";
 
 type FriendListItemProps = {
@@ -11,6 +15,10 @@ type FriendListItemProps = {
   subtitle?: string;
   image?: string | null;
   trailing?: ReactNode;
+  onPress?: () => void;
+  swipeStatus?: FriendshipUIStatus;
+  friendshipId?: string;
+  enableSplitAction?: boolean;
 };
 
 export function FriendListItem({
@@ -19,8 +27,20 @@ export function FriendListItem({
   subtitle,
   image,
   trailing,
+  onPress,
+  swipeStatus,
+  friendshipId,
+  enableSplitAction,
 }: FriendListItemProps) {
-  return (
+  const { disabled, leftActions, rightActions } = useFriendSwipeActions({
+    enableSplitAction,
+    friendshipId,
+    name,
+    status: swipeStatus,
+    userId,
+  });
+
+  const content = (
     <View
       className="flex-row items-center gap-3 rounded-3xl bg-surface px-3 py-3"
       style={{ borderCurve: "continuous" }}
@@ -40,5 +60,27 @@ export function FriendListItem({
 
       {trailing ? <View className="shrink-0">{trailing}</View> : null}
     </View>
+  );
+
+  const row = onPress ? (
+    <Pressable accessibilityRole="button" onPress={onPress}>
+      {content}
+    </Pressable>
+  ) : (
+    content
+  );
+
+  if (leftActions.length === 0 && rightActions.length === 0) {
+    return row;
+  }
+
+  return (
+    <SwipeableRow
+      disabled={disabled}
+      leftActions={leftActions}
+      rightActions={rightActions}
+    >
+      {row}
+    </SwipeableRow>
   );
 }

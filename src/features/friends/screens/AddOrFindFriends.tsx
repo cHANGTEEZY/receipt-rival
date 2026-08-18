@@ -25,7 +25,6 @@ import { Typography } from "heroui-native/text";
 import { FriendListEmpty } from "../components/FriendListEmpty";
 import { FriendListItem } from "../components/FriendListItem";
 import { FriendListSkeleton } from "../components/FriendListSkeleton";
-import { FriendshipActionButton } from "../components/FriendshipActionButton";
 import {
   getAcceptedFriends,
   resolveSearchUserFriendshipStatus,
@@ -181,14 +180,36 @@ const AddOrFindFriends = () => {
                         key={user.id}
                         name={user.name}
                         userId={user.id}
-                        subtitle={user.email}
+                        subtitle={
+                          friendship.status === "none"
+                            ? user.email
+                            : friendship.status === "pending_incoming"
+                              ? "Swipe to accept or decline"
+                              : friendship.status === "pending_outgoing"
+                                ? "Swipe to cancel request"
+                                : user.email
+                        }
                         image={user.image}
+                        swipeStatus={friendship.status}
+                        friendshipId={friendship.friendshipId}
                         trailing={
-                          <FriendshipActionButton
-                            userId={user.id}
-                            status={friendship.status}
-                            friendshipId={friendship.friendshipId}
-                          />
+                          friendship.status === "self" ? (
+                            <Chip size="sm" variant="soft" color="default">
+                              <Chip.Label>You</Chip.Label>
+                            </Chip>
+                          ) : friendship.status === "friends" ? (
+                            <Chip size="sm" variant="soft" color="success">
+                              <Chip.Label>Friends</Chip.Label>
+                            </Chip>
+                          ) : friendship.status === "pending_outgoing" ? (
+                            <Chip size="sm" variant="soft" color="default">
+                              <Chip.Label>Requested</Chip.Label>
+                            </Chip>
+                          ) : friendship.status === "pending_incoming" ? (
+                            <Chip size="sm" variant="soft" color="accent">
+                              <Chip.Label>Request</Chip.Label>
+                            </Chip>
+                          ) : undefined
                         }
                       />
                     );
@@ -227,6 +248,7 @@ const AddOrFindFriends = () => {
                       userId={friend.id}
                       subtitle="Friend"
                       image={friend.image}
+                      swipeStatus="friends"
                       trailing={
                         <Chip size="sm" variant="soft" color="success">
                           <Chip.Label>Friends</Chip.Label>
@@ -266,15 +288,14 @@ const AddOrFindFriends = () => {
                       key={request.id}
                       name={request.requester.name}
                       userId={request.requester.id}
-                      subtitle="Wants to be friends"
+                      subtitle="Swipe to accept or decline"
                       image={request.requester.image}
+                      swipeStatus="pending_incoming"
+                      friendshipId={request.id}
                       trailing={
-                        <FriendshipActionButton
-                          userId={request.requester.id}
-                          status="pending_incoming"
-                          friendshipId={request.id}
-                          layout="incoming"
-                        />
+                        <Chip size="sm" variant="soft" color="accent">
+                          <Chip.Label>Request</Chip.Label>
+                        </Chip>
                       }
                     />
                   ))}

@@ -399,6 +399,7 @@ export default function SplitDetailScreen() {
                             ? "Paid the bill"
                             : "Sharing this split"
                         }
+                        enableSplitAction={participant.userId !== currentUserId}
                         trailing={
                           participant.isOwner ? (
                             <Chip size="sm" variant="soft" color="accent">

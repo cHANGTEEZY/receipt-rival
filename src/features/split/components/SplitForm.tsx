@@ -64,6 +64,7 @@ import {
 } from "./split-stepper";
 
 type SplitFormProps = {
+  initialFriendIds?: string[];
   onSubmit?: (values: SplitFormSchema) => void | Promise<void>;
 };
 
@@ -224,7 +225,10 @@ function SplitReviewSummary({
   );
 }
 
-export default function SplitForm({ onSubmit }: SplitFormProps) {
+export default function SplitForm({
+  initialFriendIds,
+  onSubmit,
+}: SplitFormProps) {
   const { toast } = useToast();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [stepFieldErrors, setStepFieldErrors] = useState<Record<string, string>>(
@@ -251,7 +255,10 @@ export default function SplitForm({ onSubmit }: SplitFormProps) {
   );
 
   const form = useForm({
-    defaultValues: getSplitFormDefaults(),
+    defaultValues: {
+      ...getSplitFormDefaults(),
+      friendIds: initialFriendIds ?? [],
+    },
     validators: {
       onSubmit: splitFormSchema,
     },

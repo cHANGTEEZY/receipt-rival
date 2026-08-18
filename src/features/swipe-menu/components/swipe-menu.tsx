@@ -1,7 +1,7 @@
-import { Home01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { GlassContainer, GlassView } from "expo-glass-effect";
-import { type Href, usePathname, useRouter } from "expo-router";
+import { Home01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { GlassContainer, GlassView } from 'expo-glass-effect';
+import { type Href, usePathname, useRouter } from 'expo-router';
 import {
   Pressable,
   ScrollView,
@@ -9,19 +9,19 @@ import {
   Text,
   View,
   type ViewStyle,
-} from "react-native";
-import Animated, { type AnimatedStyle } from "react-native-reanimated";
+} from 'react-native';
+import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 
-import ProfileButton from "@/components/ProfileButton";
+import ProfileButton from '@/components/ProfileButton';
 
-import { SUPPORTS_LIQUID_GLASS } from "@/utils/platform";
+import { SUPPORTS_LIQUID_GLASS } from '@/utils/platform';
 import {
   ACCOUNT_DESTINATIONS,
   MENU_TITLE,
   NAV_DESTINATIONS,
   SWIPE_MENU_LAYOUT,
-} from "../constants";
-import type { ColorPalette, SwipeMenuDestination } from "../types";
+} from '../constants';
+import type { ColorPalette, SwipeMenuDestination } from '../types';
 
 type SwipeMenuProps = {
   colors: ColorPalette;
@@ -84,7 +84,7 @@ export function SwipeMenu({
           style={styles.menuScroll}
         >
           <SectionTitle colors={colors}>Navigate</SectionTitle>
-          {NAV_DESTINATIONS.map((destination) => (
+          {NAV_DESTINATIONS.map(destination => (
             <DestinationRow
               colors={colors}
               destination={destination}
@@ -95,7 +95,7 @@ export function SwipeMenu({
           ))}
 
           <SectionTitle colors={colors}>Account</SectionTitle>
-          {ACCOUNT_DESTINATIONS.map((destination) => (
+          {ACCOUNT_DESTINATIONS.map(destination => (
             <DestinationRow
               colors={colors}
               destination={destination}
@@ -131,7 +131,7 @@ export function SwipeMenu({
               style={styles.homeSurface}
               tintColor={colors.accent}
             >
-              <HomeButton colors={colors} onPress={onHomePress} />
+              <LogoutButton onPress={onHomePress} colors={colors} />
             </GlassView>
             <GlassView
               colorScheme="auto"
@@ -147,7 +147,7 @@ export function SwipeMenu({
             <View
               style={[styles.homeSurface, { backgroundColor: colors.accent }]}
             >
-              <HomeButton colors={colors} onPress={onHomePress} />
+              <LogoutButton onPress={onHomePress} colors={colors} />
             </View>
             <View
               style={[
@@ -220,7 +220,7 @@ function DestinationRow({
   );
 }
 
-function HomeButton({
+function LogoutButton({
   colors,
   onPress,
 }: {
@@ -239,7 +239,9 @@ function HomeButton({
         color={colors.accentText}
         strokeWidth={1.75}
       />
-      <Text style={[styles.homeLabel, { color: colors.accentText }]}>Home</Text>
+      <Text style={[styles.homeLabel, { color: colors.accentText }]}>
+        Logout
+      </Text>
     </Pressable>
   );
 }
@@ -262,7 +264,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: -1,
     paddingBottom: 14,
   },
@@ -274,17 +276,17 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: -0.2,
     paddingBottom: 7,
     paddingHorizontal: 8,
     paddingTop: 18,
   },
   destinationRow: {
-    alignItems: "center",
-    borderCurve: "continuous",
+    alignItems: 'center',
+    borderCurve: 'continuous',
     borderRadius: 14,
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 14,
     minHeight: 52,
     paddingHorizontal: 10,
@@ -292,51 +294,51 @@ const styles = StyleSheet.create({
   destinationTitle: {
     flex: 1,
     fontSize: 17,
-    fontWeight: "600",
+    fontWeight: '600',
     letterSpacing: -0.25,
   },
   actionDock: {
-    position: "absolute",
+    position: 'absolute',
   },
   actionRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: SWIPE_MENU_LAYOUT.actionDockSpacing,
     height: SWIPE_MENU_LAYOUT.actionDockHeight,
-    width: "100%",
+    width: '100%',
   },
   homeSurface: {
-    borderCurve: "continuous",
+    borderCurve: 'continuous',
     borderRadius: 999,
     flex: 1,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   homeButton: {
-    alignItems: "center",
+    alignItems: 'center',
     flex: 1,
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 9,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingHorizontal: 18,
   },
   homeLabel: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   profileSurface: {
-    borderCurve: "continuous",
+    borderCurve: 'continuous',
     borderRadius: 999,
     height: SWIPE_MENU_LAYOUT.actionDockHeight,
-    overflow: "hidden",
+    overflow: 'hidden',
     width: SWIPE_MENU_LAYOUT.actionDockHeight,
   },
   profileFallback: {
     borderWidth: StyleSheet.hairlineWidth,
-    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.1)",
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
   },
   profileButton: {
-    alignItems: "center",
+    alignItems: 'center',
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   pressed: {
     opacity: 0.55,

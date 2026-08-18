@@ -22,7 +22,6 @@ import EmptyFriendComponent from "./components/EmptyFriendComponent";
 import { FriendListEmpty } from "./components/FriendListEmpty";
 import { FriendListItem } from "./components/FriendListItem";
 import { FriendListSkeleton } from "./components/FriendListSkeleton";
-import { FriendshipActionButton } from "./components/FriendshipActionButton";
 import { getAcceptedFriends } from "./lib/friendship-status";
 
 type FriendsTab = "friends" | "requests";
@@ -133,6 +132,7 @@ export default function Friends() {
                       userId={friend.id}
                       subtitle="Friend"
                       image={friend.image}
+                      swipeStatus="friends"
                       trailing={
                         <Chip size="sm" variant="soft" color="success">
                           <Chip.Label>Friends</Chip.Label>
@@ -174,15 +174,14 @@ export default function Friends() {
                       key={request.id}
                       name={request.requester.name}
                       userId={request.requester.id}
-                      subtitle="Wants to be friends"
+                      subtitle="Swipe to accept or decline"
                       image={request.requester.image}
+                      swipeStatus="pending_incoming"
+                      friendshipId={request.id}
                       trailing={
-                        <FriendshipActionButton
-                          userId={request.requester.id}
-                          status="pending_incoming"
-                          friendshipId={request.id}
-                          layout="incoming"
-                        />
+                        <Chip size="sm" variant="soft" color="accent">
+                          <Chip.Label>Request</Chip.Label>
+                        </Chip>
                       }
                     />
                   ))}

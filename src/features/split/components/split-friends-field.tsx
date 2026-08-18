@@ -1,9 +1,14 @@
-import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
+import { CheckmarkCircle02Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { useCSSVariable } from "uniwind";
 
 import { useFriendsList } from "@/api/hooks/use-friends";
+import {
+  SwipeActionContent,
+  useSwipeActionTone,
+} from "@/components/swipe-action-content";
+import { SwipeableRow } from "@/components/SwipeableRow";
 import { FriendListEmpty } from "@/features/friends/components/FriendListEmpty";
 import { FriendListItem } from "@/features/friends/components/FriendListItem";
 import { FriendListSkeleton } from "@/features/friends/components/FriendListSkeleton";
@@ -27,6 +32,8 @@ export function SplitFriendsField({
   const muted = useCSSVariable("--color-muted");
   const accentColor = typeof accent === "string" ? accent : "#3b82f6";
   const mutedColor = typeof muted === "string" ? muted : "#8a8a8f";
+  const includeTone = useSwipeActionTone("success");
+  const excludeTone = useSwipeActionTone("danger");
 
   const { data, isLoading, isError } = useFriendsList();
   const friends = getAcceptedFriends(data?.data ?? []);
@@ -69,32 +76,74 @@ export function SplitFriendsField({
         style={error ? { borderCurve: "continuous" } : undefined}
       >
         {friends.map((friend) => {
-        const isSelected = selected.has(friend.id);
+          const isSelected = selected.has(friend.id);
 
-        return (
-          <Pressable
-            key={friend.id}
-            accessibilityRole="checkbox"
-            accessibilityState={{ checked: isSelected }}
-            onPress={() => toggleFriend(friend.id)}
-          >
-            <FriendListItem
-              name={friend.name}
-              userId={friend.id}
-              image={friend.image}
-              subtitle={isSelected ? "Included in this split" : "Tap to include"}
-              trailing={
-                <HugeiconsIcon
-                  icon={CheckmarkCircle02Icon}
-                  size={22}
-                  color={isSelected ? accentColor : mutedColor}
-                  strokeWidth={isSelected ? 2 : 1.5}
-                />
+          return (
+            <SwipeableRow
+              key={friend.id}
+              leftActions={
+                isSelected
+                  ? []
+                  : [
+                      {
+                        accessibilityLabel: `Include ${friend.name} in this split`,
+                        backgroundColor: includeTone.backgroundColor,
+                        content: (
+                          <SwipeActionContent
+                            color={includeTone.foregroundColor}
+                            icon={CheckmarkCircle02Icon}
+                            label="Include"
+                          />
+                        ),
+                        fullSwipe: true,
+                        key: "include",
+                        onPress: () => toggleFriend(friend.id),
+                        width: 88,
+                      },
+                    ]
               }
-            />
-          </Pressable>
-        );
-      })}
+              rightActions={
+                isSelected
+                  ? [
+                      {
+                        accessibilityLabel: `Remove ${friend.name} from this split`,
+                        backgroundColor: excludeTone.backgroundColor,
+                        content: (
+                          <SwipeActionContent
+                            color={excludeTone.foregroundColor}
+                            icon={Cancel01Icon}
+                            label="Remove"
+                          />
+                        ),
+                        fullSwipe: true,
+                        key: "exclude",
+                        onPress: () => toggleFriend(friend.id),
+                        width: 88,
+                      },
+                    ]
+                  : []
+              }
+            >
+              <FriendListItem
+                name={friend.name}
+                userId={friend.id}
+                image={friend.image}
+                subtitle={
+                  isSelected ? "Included in this split" : "Tap to include"
+                }
+                onPress={() => toggleFriend(friend.id)}
+                trailing={
+                  <HugeiconsIcon
+                    icon={CheckmarkCircle02Icon}
+                    size={22}
+                    color={isSelected ? accentColor : mutedColor}
+                    strokeWidth={isSelected ? 2 : 1.5}
+                  />
+                }
+              />
+            </SwipeableRow>
+          );
+        })}
       </View>
       {error ? <FieldError>{error}</FieldError> : null}
     </View>
