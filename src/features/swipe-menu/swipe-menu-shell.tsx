@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { type ReactNode, useCallback, useMemo } from "react";
 import {
+  Alert,
   Platform,
   Pressable,
   StyleSheet,
@@ -13,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 
+import { authClient } from "@/lib/auth-client";
 import ScreenCornerSurface from "../../../modules/screen-corner-surface";
 import { SwipeMenu } from "./components/swipe-menu";
 import {
@@ -59,10 +61,18 @@ export function SwipeMenuShell({ children }: SwipeMenuShellProps) {
     animateMenu(false);
   }, [animateMenu]);
 
-  const goHome = useCallback(() => {
-    animateMenu(false);
-    router.navigate("/(app)/home");
-  }, [animateMenu, router]);
+  const handleLogout = () => {
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: () => {
+          authClient.signOut();
+        },
+      },
+    ]);
+  };
 
   const openProfile = useCallback(() => {
     animateMenu(false);
@@ -96,7 +106,7 @@ export function SwipeMenuShell({ children }: SwipeMenuShellProps) {
               dockAnimatedStyle={menuDockAnimatedStyle}
               menuWidth={menuWidth}
               onClose={closeMenu}
-              onHomePress={goHome}
+              onLogout={handleLogout}
               onProfilePress={openProfile}
               safeAreaBottom={insets.bottom}
               safeAreaTop={insets.top}

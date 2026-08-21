@@ -11,11 +11,11 @@ import { useCSSVariable } from "uniwind";
 import { hapticSelection } from "@/lib/haptics";
 import { formatMoney } from "@/utils/money";
 
-import { BottomSheet } from "heroui-native/bottom-sheet";
+import { NativeBottomSheet } from "@/components/native-bottom-sheet";
+import { PressableFeedback } from "heroui-native";
 import { Button } from "heroui-native/button";
 import { Spinner } from "heroui-native/spinner";
 import { Typography } from "heroui-native/text";
-import { PressableFeedback } from "heroui-native";
 
 type IconData = ComponentProps<typeof HugeiconsIcon>["icon"];
 
@@ -76,98 +76,103 @@ export function PaymentMethodsSheet({
   const mutedColor = typeof muted === "string" ? muted : "#8A8A8F";
 
   return (
-    <BottomSheet isOpen={isOpen} onOpenChange={onOpenChange}>
-      <BottomSheet.Portal>
-        <BottomSheet.Overlay />
-        <BottomSheet.Content snapPoints={["52%"]}>
-          <View className="gap-5 pb-2">
-            <View className="gap-1">
-              <BottomSheet.Title>Pay your share</BottomSheet.Title>
-              <BottomSheet.Description>
-                {formatMoney(amountCents, currency)} · pick how you settled up
-              </BottomSheet.Description>
-            </View>
+    <NativeBottomSheet
+      isPresented={isOpen}
+      onDismiss={() => onOpenChange(false)}
+      snapPoints={["half", "full"]}
+    >
+      <View className="gap-5  w-full ">
+        <View className="gap-1">
+          <Typography type="body" weight="semibold" color="muted">
+            Pay your share
+          </Typography>
+          <Typography type="h5" className="font-serif">
+            {formatMoney(amountCents, currency)} · pick how you wanna settle
+          </Typography>
+        </View>
 
-            <View className="gap-3">
-              {METHODS.map((method) => {
-                const disabled =
-                  !method.available || (method.id === "cash" && isSubmittingCash);
+        <View className="gap-3 w-full ">
+          {METHODS.map((method) => {
+            const disabled =
+              !method.available || (method.id === "cash" && isSubmittingCash);
 
-                return (
-                  <PressableFeedback
-                    key={method.id}
-                    animation={false}
-                    isDisabled={disabled}
-                    onPress={() => {
-                      if (method.id !== "cash") return;
-                      hapticSelection();
-                      void onSelectCash();
+            return (
+              <PressableFeedback
+                key={method.id}
+                animation={false}
+                isDisabled={disabled}
+                onPress={() => {
+                  if (method.id !== "cash") return;
+                  hapticSelection();
+                  void onSelectCash();
+                }}
+                className="overflow-hidden rounded-3xl flex-1 w-full"
+                accessibilityRole="button"
+                accessibilityState={{ disabled }}
+                accessibilityLabel={method.label}
+              >
+                <PressableFeedback.Highlight
+                  animation={{
+                    backgroundColor: { value: method.color },
+                    opacity: { value: [0, 0.08] },
+                  }}
+                />
+
+                <View
+                  className={`flex-row items-center gap-3.5 rounded-3xl border border-border bg-surface p-4 ${
+                    disabled ? "opacity-55" : ""
+                  }`}
+                  style={{ borderCurve: "continuous" }}
+                >
+                  <View
+                    className="size-11 items-center justify-center rounded-2xl"
+                    style={{
+                      backgroundColor: method.color,
+                      borderCurve: "continuous",
                     }}
-                    className="overflow-hidden rounded-3xl"
-                    accessibilityRole="button"
-                    accessibilityState={{ disabled }}
-                    accessibilityLabel={method.label}
                   >
-                    <PressableFeedback.Highlight
-                      animation={{
-                        backgroundColor: { value: method.color },
-                        opacity: { value: [0, 0.08] },
-                      }}
+                    <HugeiconsIcon
+                      icon={method.icon}
+                      size={22}
+                      color="#FFFFFF"
+                      strokeWidth={1.75}
                     />
+                  </View>
 
-                    <View
-                      className={`flex-row items-center gap-3.5 rounded-3xl border border-border bg-surface p-4 ${
-                        disabled ? "opacity-55" : ""
-                      }`}
-                      style={{ borderCurve: "continuous" }}
+                  <View className="min-w-0 flex-1 gap-0.5">
+                    <Typography type="body-sm" weight="semibold">
+                      {method.label}
+                    </Typography>
+                    <Typography type="body-xs" color="muted">
+                      {method.description}
+                    </Typography>
+                  </View>
+
+                  {method.id === "cash" && isSubmittingCash ? (
+                    <Spinner size="sm" className="shrink-0" />
+                  ) : !method.available ? (
+                    <Typography
+                      type="body-xs"
+                      style={{ color: mutedColor }}
+                      className="shrink-0"
                     >
-                      <View
-                        className="size-11 items-center justify-center rounded-2xl"
-                        style={{
-                          backgroundColor: method.color,
-                          borderCurve: "continuous",
-                        }}
-                      >
-                        <HugeiconsIcon
-                          icon={method.icon}
-                          size={22}
-                          color="#FFFFFF"
-                          strokeWidth={1.75}
-                        />
-                      </View>
+                      Soon
+                    </Typography>
+                  ) : null}
+                </View>
+              </PressableFeedback>
+            );
+          })}
+        </View>
 
-                      <View className="min-w-0 flex-1 gap-0.5">
-                        <Typography type="body-sm" weight="semibold">
-                          {method.label}
-                        </Typography>
-                        <Typography type="body-xs" color="muted">
-                          {method.description}
-                        </Typography>
-                      </View>
-
-                      {method.id === "cash" && isSubmittingCash ? (
-                        <Spinner size="sm" />
-                      ) : !method.available ? (
-                        <Typography type="body-xs" style={{ color: mutedColor }}>
-                          Soon
-                        </Typography>
-                      ) : null}
-                    </View>
-                  </PressableFeedback>
-                );
-              })}
-            </View>
-
-            <Button
-              variant="tertiary"
-              onPress={() => onOpenChange(false)}
-              isDisabled={isSubmittingCash}
-            >
-              <Button.Label>Cancel</Button.Label>
-            </Button>
-          </View>
-        </BottomSheet.Content>
-      </BottomSheet.Portal>
-    </BottomSheet>
+        <Button
+          variant="tertiary"
+          onPress={() => onOpenChange(false)}
+          isDisabled={isSubmittingCash}
+        >
+          <Button.Label>Cancel</Button.Label>
+        </Button>
+      </View>
+    </NativeBottomSheet>
   );
 }

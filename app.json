@@ -22,10 +22,7 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.changteezy.receiptrival"
     },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
+    "platforms": ["ios", "android"],
     "plugins": [
       "expo-router",
       [

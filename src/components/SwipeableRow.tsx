@@ -6,17 +6,14 @@ import {
   useMemo,
 } from "react";
 import {
+  type LayoutChangeEvent,
   Pressable,
+  type StyleProp,
   StyleSheet,
   View,
-  type LayoutChangeEvent,
-  type StyleProp,
   type ViewStyle,
 } from "react-native";
-import {
-  Gesture,
-  GestureDetector,
-} from "react-native-gesture-handler";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -47,9 +44,7 @@ export type SwipeableRowAction = {
   accessibilityHint?: string;
   accessibilityLabel: string;
   backgroundColor?: string;
-  content:
-    | ReactNode
-    | ((state: SwipeableRowActionRenderState) => ReactNode);
+  content: ReactNode | ((state: SwipeableRowActionRenderState) => ReactNode);
   disabled?: boolean;
   /**
    * Explicitly allows this action to run when the row is fully swiped.
@@ -141,10 +136,7 @@ function fullSwipeCommitDistance(
 ) {
   "worklet";
 
-  return Math.min(
-    width * 0.88,
-    Math.max(width * threshold, revealWidth + 64),
-  );
+  return Math.min(width * 0.88, Math.max(width * threshold, revealWidth + 64));
 }
 
 export const SwipeableRow = forwardRef<SwipeableRowRef, SwipeableRowProps>(
@@ -263,8 +255,7 @@ export const SwipeableRow = forwardRef<SwipeableRowRef, SwipeableRowProps>(
           .onUpdate((event) => {
             const rawPosition = gestureStartX.value + event.translationX;
             const side: SwipeSide = rawPosition >= 0 ? "left" : "right";
-            const hasActions =
-              side === "left" ? leftWidth > 0 : rightWidth > 0;
+            const hasActions = side === "left" ? leftWidth > 0 : rightWidth > 0;
 
             if (!hasActions) {
               translateX.value = rawPosition * overshootFriction;
@@ -288,7 +279,11 @@ export const SwipeableRow = forwardRef<SwipeableRowRef, SwipeableRowProps>(
 
             translateX.value =
               direction *
-              clamp(canFullSwipe ? distance : resistedDistance, 0, maximumDistance);
+              clamp(
+                canFullSwipe ? distance : resistedDistance,
+                0,
+                maximumDistance,
+              );
 
             if (
               !revealedDuringGesture.value &&
@@ -324,14 +319,11 @@ export const SwipeableRow = forwardRef<SwipeableRowRef, SwipeableRowProps>(
             }
           })
           .onEnd((event) => {
-            const side: SwipeSide =
-              translateX.value >= 0 ? "left" : "right";
+            const side: SwipeSide = translateX.value >= 0 ? "left" : "right";
             const direction = side === "left" ? 1 : -1;
             const revealWidth = side === "left" ? leftWidth : rightWidth;
             const fullSwipeAction =
-              side === "left"
-                ? leftFullSwipeAction
-                : rightFullSwipeAction;
+              side === "left" ? leftFullSwipeAction : rightFullSwipeAction;
 
             if (fullSwipeArmed.value && fullSwipeAction) {
               translateX.value = withTiming(
@@ -426,10 +418,7 @@ export const SwipeableRow = forwardRef<SwipeableRowRef, SwipeableRowProps>(
     });
 
     return (
-      <View
-        onLayout={onLayout}
-        style={[styles.container, containerStyle]}
-      >
+      <View onLayout={onLayout} style={[styles.container, containerStyle]}>
         <ActionTray
           actions={leftActions}
           fullSwipeProgress={leftFullSwipeProgress}
@@ -480,15 +469,10 @@ function ActionTray({
   const regularActions = fullSwipeAction
     ? actions.filter((action) => action.key !== fullSwipeAction.key)
     : actions;
-  const fullActionWidth = fullSwipeAction
-    ? actionWidth(fullSwipeAction)
-    : 0;
+  const fullActionWidth = fullSwipeAction ? actionWidth(fullSwipeAction) : 0;
 
   return (
-    <View
-      pointerEvents="box-none"
-      style={styles.actionTray}
-    >
+    <View pointerEvents="box-none" style={styles.actionTray}>
       <View
         pointerEvents="box-none"
         style={[
@@ -583,8 +567,7 @@ function ActionButton({
 
     return {
       opacity:
-        interpolate(actionProgress, [0, 0.35, 1], [0, 0.6, 1]) *
-        siblingOpacity,
+        interpolate(actionProgress, [0, 0.35, 1], [0, 0.6, 1]) * siblingOpacity,
       transform: [
         {
           translateX: interpolate(
