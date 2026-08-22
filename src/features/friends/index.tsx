@@ -3,6 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useMemo, useState } from "react";
 import { View } from "react-native";
 import { useCSSVariable } from "uniwind";
+import { router } from "expo-router";
 
 import {
   useFriendsList,
@@ -11,6 +12,7 @@ import {
 import CollapsingLargeHeader from "@/components/layouts/CollapsingLargeHeader";
 import MeshBackground from "@/components/MeshBackground";
 import SplitFab from "@/components/SplitFab";
+import { hapticSelection } from "@/lib/haptics";
 import { SwipeMenuButton } from "@/features/swipe-menu";
 
 import { Chip } from "heroui-native/chip";
@@ -133,6 +135,10 @@ export default function Friends() {
                       subtitle="Friend"
                       image={friend.image}
                       swipeStatus="friends"
+                      onPress={() => {
+                        hapticSelection();
+                        router.push(`/(screens)/user/${friend.id}`);
+                      }}
                       trailing={
                         <Chip size="sm" variant="soft" color="success">
                           <Chip.Label>Friends</Chip.Label>
@@ -178,6 +184,10 @@ export default function Friends() {
                       image={request.requester.image}
                       swipeStatus="pending_incoming"
                       friendshipId={request.id}
+                      onPress={() => {
+                        hapticSelection();
+                        router.push(`/(screens)/user/${request.requester.id}`);
+                      }}
                       trailing={
                         <Chip size="sm" variant="soft" color="accent">
                           <Chip.Label>Request</Chip.Label>

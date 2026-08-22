@@ -38,6 +38,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useCSSVariable } from "uniwind";
 
+import { ACCENT_HEX } from "@/theme/accent";
 import { AppHaptics } from "@/lib/haptics";
 
 import { Spinner } from "heroui-native/spinner";
@@ -154,7 +155,7 @@ export const SlideToComplete = forwardRef<
   const muted = useCSSVariable("--color-muted");
 
   const accentColor =
-    progressColor ?? (typeof accent === "string" ? accent : "#3B82F6");
+    progressColor ?? (typeof accent === "string" ? accent : ACCENT_HEX);
   const successColor =
     completedColor ?? (typeof success === "string" ? success : "#22C55E");
   const trackBg =

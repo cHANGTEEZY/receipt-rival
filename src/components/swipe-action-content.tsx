@@ -4,6 +4,8 @@ import { useCSSVariable } from "uniwind";
 
 import { HugeiconsIcon } from "@hugeicons/react-native";
 
+import { ACCENT_HEX } from "@/theme/accent";
+
 import { Typography } from "heroui-native/text";
 
 type IconData = ComponentProps<typeof HugeiconsIcon>["icon"];
@@ -49,7 +51,7 @@ const TONE_FALLBACKS: Record<
   SwipeActionTone,
   { background: string; foreground: string }
 > = {
-  accent: { background: "#3B82F6", foreground: "#FFFFFF" },
+  accent: { background: ACCENT_HEX, foreground: "#FFFFFF" },
   success: { background: "#22C55E", foreground: "#FFFFFF" },
   danger: { background: "#EF4444", foreground: "#FFFFFF" },
   warning: { background: "#F59E0B", foreground: "#1A1A1F" },

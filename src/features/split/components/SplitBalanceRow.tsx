@@ -17,6 +17,7 @@ import {
 } from "@/components/swipe-action-content";
 import { SwipeableRow } from "@/components/SwipeableRow";
 import { getInitials } from "@/features/friends/lib/friendship-status";
+import { ACCENT_HEX } from "@/theme/accent";
 import { formatMoney } from "@/utils/money";
 
 import { Typography } from "heroui-native/text";
@@ -37,7 +38,7 @@ export function SplitBalanceRow({
   onPress,
 }: SplitBalanceRowProps) {
   const accent = useCSSVariable("--color-accent");
-  const iconColor = typeof accent === "string" ? accent : "#3b82f6";
+  const iconColor = typeof accent === "string" ? accent : ACCENT_HEX;
   const openTone = useSwipeActionTone("accent");
   const payTone = useSwipeActionTone("success");
   const remindTone = useSwipeActionTone("warning");

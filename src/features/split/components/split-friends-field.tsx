@@ -12,6 +12,7 @@ import { SwipeableRow } from "@/components/SwipeableRow";
 import { FriendListEmpty } from "@/features/friends/components/FriendListEmpty";
 import { FriendListItem } from "@/features/friends/components/FriendListItem";
 import { FriendListSkeleton } from "@/features/friends/components/FriendListSkeleton";
+import { ACCENT_HEX } from "@/theme/accent";
 import { getAcceptedFriends } from "@/features/friends/lib/friendship-status";
 
 import { FieldError } from "heroui-native/field-error";
@@ -30,7 +31,7 @@ export function SplitFriendsField({
 }: SplitFriendsFieldProps) {
   const accent = useCSSVariable("--color-accent");
   const muted = useCSSVariable("--color-muted");
-  const accentColor = typeof accent === "string" ? accent : "#3b82f6";
+  const accentColor = typeof accent === "string" ? accent : ACCENT_HEX;
   const mutedColor = typeof muted === "string" ? muted : "#8a8a8f";
   const includeTone = useSwipeActionTone("success");
   const excludeTone = useSwipeActionTone("danger");

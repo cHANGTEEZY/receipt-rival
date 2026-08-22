@@ -1,4 +1,9 @@
 import type { SplitFormSchema } from "../data/split-form";
+import {
+  isFilledSplitItem,
+  itemsTotalMismatchMessage,
+  sumFilledItemsCents,
+} from "./split-items";
 
 const QUANTITY_EPSILON = 0.001;
 const PERCENTAGE_EPSILON = 0.01;
@@ -86,8 +91,6 @@ export function getStepValidationError(
       return null;
 
     case "amounts": {
-      if (values.splitMethod === "itemized") return null;
-
       if (values.totalAmountCents <= 0) {
         return {
           field: "totalAmountCents",
@@ -104,24 +107,33 @@ export function getStepValidationError(
     }
 
     case "items": {
-      if (values.splitMethod !== "itemized") return null;
-
-      const filled = values.items.filter(
-        (item) => item.name.trim() || item.unitPriceCents > 0,
-      );
-      if (filled.length === 0) {
+      const filled = values.items.filter(isFilledSplitItem);
+      if (values.splitMethod === "itemized" && filled.length === 0) {
         return {
           field: "items",
           message: "Add at least one item for an itemized split.",
+        };
+      }
+
+      const itemsTotalCents = sumFilledItemsCents(values.items);
+      if (
+        filled.length > 0 &&
+        itemsTotalCents !== values.totalAmountCents
+      ) {
+        return {
+          field: "items",
+          message: itemsTotalMismatchMessage(
+            values.totalAmountCents,
+            values.items,
+            values.currency,
+          ),
         };
       }
       return null;
     }
 
     case "assignments": {
-      const filledItems = values.items.filter(
-        (item) => item.name.trim() || item.unitPriceCents > 0,
-      );
+      const filledItems = values.items.filter(isFilledSplitItem);
 
       for (const item of filledItems) {
         const assignment = values.itemAssignments.find(

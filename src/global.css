@@ -5,10 +5,9 @@
 @source "../node_modules/heroui-native/lib";
 
 /*
- * Expo Boilerplate — Signal Blue theme
+ * ReceiptRival — Clay theme
  *
- * Cool-gray canvas with a single blue accent used sparingly.
- * @see DESIGN.md
+ * Cool-gray canvas with a warm terracotta accent used sparingly.
  * @see https://heroui.com/docs/native/getting-started/theming
  */
 
@@ -43,7 +42,7 @@
     --default: oklch(0.928 0.0013 286.37);
     --default-foreground: oklch(0.24 0.0059 285.89);
 
-    --accent: oklch(0.6204 0.195 253.83);
+    --accent: oklch(0.63 0.14 38);
     --accent-foreground: oklch(0.9911 0 0);
 
     --field-background: oklch(1 0 0);
@@ -66,8 +65,8 @@
     --border: oklch(0.9 0.004 286.32);
     --separator: oklch(0.92 0.004 286.32);
 
-    --focus: oklch(0.6204 0.195 253.83);
-    --link: oklch(0.6204 0.195 253.83);
+    --focus: oklch(0.63 0.14 38);
+    --link: oklch(0.63 0.14 38);
 
     --surface-shadow:
       0 2px 4px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.06),
@@ -103,7 +102,7 @@
     --default: oklch(0.3 0.0037 286.14);
     --default-foreground: oklch(0.9911 0 0);
 
-    --accent: oklch(0.6204 0.195 253.83);
+    --accent: oklch(0.63 0.14 38);
     --accent-foreground: oklch(0.9911 0 0);
 
     --field-background: oklch(0.22 0.0059 285.89);
@@ -126,8 +125,8 @@
     --border: oklch(0.28 0.006 286.033);
     --separator: oklch(0.32 0.006 286.033);
 
-    --focus: oklch(0.6204 0.195 253.83);
-    --link: oklch(0.6204 0.195 253.83);
+    --focus: oklch(0.63 0.14 38);
+    --link: oklch(0.63 0.14 38);
 
     --surface-shadow: 0 0 0 0 transparent;
 

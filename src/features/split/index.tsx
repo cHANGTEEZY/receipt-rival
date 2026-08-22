@@ -5,12 +5,14 @@ import { View } from "react-native";
 import { invalidatePaymentQueries } from "@/api/hooks/use-payments";
 import GoBackButton from "@/components/GoBackButton";
 import CollapsedLargeHeader from "@/components/layouts/CollapsedLargeHeader";
+import { useSession } from "@/lib/auth-client";
 
 import SplitForm from "./components/SplitForm";
 import type { SplitFormSchema } from "./data/split-form";
 import { createSplit } from "./lib/create-split";
 
 export default function SplitPage() {
+  const { data: session } = useSession();
   const queryClient = useQueryClient();
   const params = useLocalSearchParams<{ friendId?: string | string[] }>();
   const friendId = Array.isArray(params.friendId)
@@ -18,7 +20,12 @@ export default function SplitPage() {
     : params.friendId;
 
   const handleSubmit = async (values: SplitFormSchema) => {
-    const result = await createSplit(values);
+    const currentUserId = session?.user?.id;
+    if (!currentUserId) {
+      throw new Error("Your session has expired. Sign in and try again.");
+    }
+
+    const result = await createSplit(values, currentUserId);
     invalidatePaymentQueries(queryClient, result.paymentId);
     router.replace(`/(screens)/split/${result.paymentId}`);
   };

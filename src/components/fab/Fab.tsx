@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCSSVariable } from "uniwind";
 
 import HapticPressable from "@/components/HapticButton";
+import { ACCENT_HEX } from "@/theme/accent";
 
 import {
   GlassControl,
@@ -198,7 +199,7 @@ export function Fab({
             },
           ]}
         >
-          <GlassControl size={size} tintColor="#3B82F6">
+          <GlassControl size={size} tintColor={ACCENT_HEX}>
             <HapticPressable
               accessibilityRole="button"
               accessibilityLabel={testID ?? "Floating action button"}

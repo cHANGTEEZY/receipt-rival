@@ -22,7 +22,7 @@ export type FabItemProps = {
   /** Optional label pill shown on the inner side of the icon. */
   label?: string;
   /**
-   * Circle fill. Use hex or rgba (`#FFFFFF`, `#3B82F6`, `rgba(255,255,255,0.92)`).
+   * Circle fill. Use hex or rgba (`#FFFFFF`, `#C45D3E`, `rgba(255,255,255,0.92)`).
    * Native glass cannot read CSS `oklch()` theme tokens.
    * @default "#FFFFFF"
    */

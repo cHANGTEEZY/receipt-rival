@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { View } from "react-native";
 import { useCSSVariable } from "uniwind";
 
+import { ACCENT_HEX } from "@/theme/accent";
 import { hapticPress } from "@/lib/haptics";
 
 import { Button } from "heroui-native/button";
@@ -11,7 +12,7 @@ import { Typography } from "heroui-native/text";
 
 export function SplitListEmpty() {
   const accent = useCSSVariable("--color-accent");
-  const iconColor = typeof accent === "string" ? accent : "#3b82f6";
+  const iconColor = typeof accent === "string" ? accent : ACCENT_HEX;
 
   return (
     <View

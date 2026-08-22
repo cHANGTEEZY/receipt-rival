@@ -7,6 +7,8 @@ import {
   UserGroupIcon,
 } from "@hugeicons/core-free-icons";
 
+import { ACCENT_HEX } from "@/theme/accent";
+
 import type { SwipeMenuDestination } from "./types";
 
 export const MENU_TITLE = "ReceiptRival";
@@ -102,7 +104,7 @@ export const SWIPE_MENU_REVEAL = {
 
 export const COLOR_FALLBACKS = {
   light: {
-    accent: "#3B82F6",
+    accent: ACCENT_HEX,
     accentText: "#FFFFFF",
     menuBackground: "#F7F7F7",
     menuSelected: "#E8E8EC",
@@ -113,7 +115,7 @@ export const COLOR_FALLBACKS = {
     text: "#1A1A1F",
   },
   dark: {
-    accent: "#3B82F6",
+    accent: ACCENT_HEX,
     accentText: "#FFFFFF",
     menuBackground: "#121214",
     menuSelected: "#2A2A30",

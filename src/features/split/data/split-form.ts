@@ -112,10 +112,7 @@ export const splitFormSchema = z
       (sum, item) => sum + Math.round(item.quantity * item.unitPriceCents),
       0,
     );
-    const effectiveTotalCents =
-      filledItems.length > 0 ? itemsTotalCents : value.totalAmountCents;
-
-    if (value.discountAmountCents > effectiveTotalCents) {
+    if (value.discountAmountCents > value.totalAmountCents) {
       ctx.addIssue({
         code: "custom",
         path: ["discountAmountCents"],
@@ -125,18 +122,29 @@ export const splitFormSchema = z
 
     const netTotalCents = Math.max(
       0,
-      effectiveTotalCents - value.discountAmountCents,
+      value.totalAmountCents - value.discountAmountCents,
     );
 
-    if (
-      value.splitMethod === "equal" &&
-      filledItems.length === 0 &&
-      value.totalAmountCents <= 0
-    ) {
+    if (value.totalAmountCents <= 0) {
       ctx.addIssue({
         code: "custom",
         path: ["totalAmountCents"],
         message: "Enter a total greater than zero.",
+      });
+    }
+
+    if (
+      filledItems.length > 0 &&
+      itemsTotalCents !== value.totalAmountCents
+    ) {
+      const remaining = value.totalAmountCents - itemsTotalCents;
+      ctx.addIssue({
+        code: "custom",
+        path: ["items"],
+        message:
+          remaining > 0
+            ? "There's still money left to itemize. Add another line or put the rest on others."
+            : "Items add up to more than the bill total.",
       });
     }
 
@@ -169,14 +177,6 @@ export const splitFormSchema = z
     }
 
     if (value.splitMethod === "percentage") {
-      if ((value.totalAmountCents ?? 0) <= 0) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["totalAmountCents"],
-          message: "Enter a total greater than zero.",
-        });
-      }
-
       const totalPercentage = value.percentageSplits.reduce(
         (sum, split) => sum + split.percentage,
         0,
@@ -192,14 +192,6 @@ export const splitFormSchema = z
     }
 
     if (value.splitMethod === "custom") {
-      if ((value.totalAmountCents ?? 0) <= 0) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["totalAmountCents"],
-          message: "Enter a total greater than zero.",
-        });
-      }
-
       const totalCustomCents = value.customSplits.reduce(
         (sum, split) => sum + split.amountCents,
         0,

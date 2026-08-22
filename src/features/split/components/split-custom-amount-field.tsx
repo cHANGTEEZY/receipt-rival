@@ -14,6 +14,7 @@ import { SplitMoneyField } from "./split-money-field";
 
 type SplitCustomAmountFieldProps = {
   friendIds: string[];
+  currentUserId?: string;
   currency: string;
   totalCents: number;
   value: CustomSplitForm[];
@@ -23,6 +24,7 @@ type SplitCustomAmountFieldProps = {
 
 export function SplitCustomAmountField({
   friendIds,
+  currentUserId,
   currency,
   totalCents,
   value,
@@ -100,7 +102,10 @@ export function SplitCustomAmountField({
         {friendIds.map((friendId) => {
           const amountCents =
             value.find((split) => split.userId === friendId)?.amountCents ?? 0;
-          const friendName = nameById.get(friendId) ?? "Mystery friend";
+          const friendName =
+            friendId === currentUserId
+              ? "You"
+              : (nameById.get(friendId) ?? "Mystery friend");
 
           return (
             <View key={friendId} className="flex-row items-center gap-3">

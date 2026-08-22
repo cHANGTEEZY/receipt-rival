@@ -11,9 +11,9 @@ import { useCSSVariable } from "uniwind";
 
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 
-/** Signal Blue mesh palette — cool blue/gray tones. */
-const LIGHT_COLORS = ["#A8C8F0", "#88B0E8", "#C0D8F8"] as const;
-const DARK_COLORS = ["#2A3F5E", "#1E3048", "#243850"] as const;
+/** Clay mesh palette — warm terracotta on a cool-gray canvas. */
+const LIGHT_COLORS = ["#E8C4B0", "#E0B49A", "#F0D4C4"] as const;
+const DARK_COLORS = ["#4A3028", "#3D2822", "#45302A"] as const;
 const LIGHT_BG = "#F7F7F8";
 const DARK_BG = "#1E1E20";
 

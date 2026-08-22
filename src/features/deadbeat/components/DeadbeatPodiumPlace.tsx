@@ -3,12 +3,14 @@ import {
   LaurelWreathRight01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { router } from "expo-router";
 import { useId, useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import Svg, { Defs, Ellipse, LinearGradient, Rect, Stop } from "react-native-svg";
 
 import type { DeadbeatLeaderboardEntry } from "@/api/deadbeat";
 import { UserAvatar } from "@/features/friends/components/UserAvatar";
+import { hapticSelection } from "@/lib/haptics";
 
 import { Typography } from "heroui-native/text";
 
@@ -125,7 +127,15 @@ export function DeadbeatPodiumPlace({ entry }: DeadbeatPodiumPlaceProps) {
   const ry = capRadius(width || 100);
 
   return (
-    <View className="flex-1 items-center">
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Open ${displayName}'s profile`}
+      onPress={() => {
+        hapticSelection();
+        router.push(`/(screens)/user/${entry.user.id}`);
+      }}
+      className="flex-1 items-center"
+    >
       <View className="z-20 mb-[-12] items-center" pointerEvents="none">
         <View className="flex-row items-center">
           <View className="mr-[-8]">
@@ -211,6 +221,6 @@ export function DeadbeatPodiumPlace({ entry }: DeadbeatPodiumPlaceProps) {
           </Typography>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }

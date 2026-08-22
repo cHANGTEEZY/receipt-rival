@@ -16,6 +16,7 @@ const PERCENTAGE_EPSILON = 0.01;
 
 type SplitPercentageFieldProps = {
   friendIds: string[];
+  currentUserId?: string;
   value: PercentageSplitForm[];
   onChange: (value: PercentageSplitForm[]) => void;
   error?: string | null;
@@ -23,6 +24,7 @@ type SplitPercentageFieldProps = {
 
 export function SplitPercentageField({
   friendIds,
+  currentUserId,
   value,
   onChange,
   error,
@@ -101,7 +103,10 @@ export function SplitPercentageField({
         {friendIds.map((friendId) => {
           const percentage =
             value.find((split) => split.userId === friendId)?.percentage ?? 0;
-          const friendName = nameById.get(friendId) ?? "Mystery friend";
+          const friendName =
+            friendId === currentUserId
+              ? "You"
+              : (nameById.get(friendId) ?? "Mystery friend");
 
           return (
             <View

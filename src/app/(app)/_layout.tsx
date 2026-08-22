@@ -1,5 +1,6 @@
-import { Redirect } from "expo-router";
+import { Redirect, useFocusEffect } from "expo-router";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useCSSVariable } from "uniwind";
 
@@ -9,6 +10,10 @@ import {
   useStackContentStyle,
 } from "@/hooks/use-navigation-theme";
 import { useSession } from "@/lib/auth-client";
+import {
+  isOnboardingComplete,
+  type OnboardingStatus,
+} from "@/lib/onboarding";
 
 export default function AppLayout() {
   const { data: session, isPending } = useSession();
@@ -17,7 +22,28 @@ export default function AppLayout() {
   const accentColor = useCSSVariable("--color-accent");
   const mutedColor = useCSSVariable("--color-muted");
 
-  if (isPending) {
+  // First-launch onboarding gate: re-checked on mount and every refocus so
+  // completing the carousel (which flips the persisted flag) lets the app in.
+  const [onboarding, setOnboarding] = useState<OnboardingStatus>({
+    checked: false,
+    complete: true,
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      void isOnboardingComplete().then((complete) => {
+        if (active) setOnboarding({ checked: true, complete });
+      });
+
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
+
+  if (isPending || !onboarding.checked) {
     return (
       <View
         style={{
@@ -34,6 +60,10 @@ export default function AppLayout() {
 
   if (!session) {
     return <Redirect href="/sign-in" />;
+  }
+
+  if (!onboarding.complete) {
+    return <Redirect href="/(screens)/onboarding" />;
   }
 
   return (

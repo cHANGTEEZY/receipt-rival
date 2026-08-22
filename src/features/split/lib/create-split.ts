@@ -2,6 +2,7 @@ import { paymentsApi } from "@/api/payments";
 import { splitsApi } from "@/api/splits";
 
 import type { SplitFormSchema } from "../data/split-form";
+import { isFilledSplitItem, sumFilledItemsCents } from "./split-items";
 
 export type CreateSplitResult = {
   paymentId: string;
@@ -9,6 +10,7 @@ export type CreateSplitResult = {
 
 export async function createSplit(
   values: SplitFormSchema,
+  currentUserId: string,
 ): Promise<CreateSplitResult> {
   const friendIds = [...new Set(values.friendIds)];
   if (friendIds.length === 0) {
@@ -16,9 +18,7 @@ export async function createSplit(
   }
 
   const dueAt = values.dueAt.toISOString();
-  const items = values.items.filter(
-    (item) => item.name.trim() || item.unitPriceCents > 0,
-  );
+  const items = values.items.filter(isFilledSplitItem);
   const hasItems = items.length > 0;
 
   if (values.splitMethod === "itemized" && !hasItems) {
@@ -29,18 +29,16 @@ export async function createSplit(
     throw new Error("Enter a total greater than the discount.");
   }
 
-  const itemsTotalCents = items.reduce(
-    (sum, item) => sum + Math.round(item.quantity * item.unitPriceCents),
-    0,
-  );
-  const effectiveTotalCents = hasItems
-    ? itemsTotalCents
-    : values.totalAmountCents;
+  const itemsTotalCents = sumFilledItemsCents(items);
+  if (hasItems && itemsTotalCents !== values.totalAmountCents) {
+    throw new Error("Item totals must exactly match the bill total.");
+  }
+
   // Without items the API stores total as-is (discount is only applied when
   // items recompute the total), so send the net amount to split.
   const netTotalCents = Math.max(
     0,
-    effectiveTotalCents - values.discountAmountCents,
+    values.totalAmountCents - values.discountAmountCents,
   );
 
   const payment = await paymentsApi.create({
@@ -119,7 +117,7 @@ export async function createSplit(
     });
   } else {
     await splitsApi.createEqual(payment.id, {
-      debtorUserIds: friendIds,
+      debtorUserIds: [...new Set([currentUserId, ...friendIds])],
       dueAt,
       receiptImage: values.receiptImage,
     });

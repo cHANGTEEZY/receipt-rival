@@ -10,6 +10,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { useCSSVariable } from "uniwind";
 
+import { ACCENT_HEX } from "@/theme/accent";
+
 import { Button } from "heroui-native/button";
 import { Spinner } from "heroui-native/spinner";
 import { Typography } from "heroui-native/text";
@@ -35,7 +37,7 @@ function useThemeHex(variable: string, fallback: string): string {
 
 function StepNode({ status }: { status: StepStatus }) {
   const borderColor = useThemeHex("--color-border", "#e4e4e7");
-  const accentColor = useThemeHex("--color-accent", "#3b82f6");
+  const accentColor = useThemeHex("--color-accent", ACCENT_HEX);
   const progress = useSharedValue(status === "upcoming" ? 0 : 1);
 
   useEffect(() => {
@@ -63,7 +65,7 @@ function StepNode({ status }: { status: StepStatus }) {
 
 function StepLine({ filled }: { filled: boolean }) {
   const borderColor = useThemeHex("--color-border", "#e4e4e7");
-  const accentColor = useThemeHex("--color-accent", "#3b82f6");
+  const accentColor = useThemeHex("--color-accent", ACCENT_HEX);
   const progress = useSharedValue(filled ? 1 : 0);
 
   useEffect(() => {

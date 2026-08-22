@@ -16,6 +16,7 @@ import {
   hapticSelection,
   hapticSuccess,
 } from "@/lib/haptics";
+import { useSession } from "@/lib/auth-client";
 import {
   collectValidationMessages,
   fieldHasError,
@@ -75,8 +76,8 @@ function buildSteps(splitMethod: SplitMethod): FormStep[] {
     {
       id: "details",
       title: "Split basics",
-      description: "Pick how you'll split the bill and give it a name.",
-      fields: ["splitMethod", "title", "description", "locationName"],
+      description: "Give the bill a name and add any helpful details.",
+      fields: ["title", "description", "locationName"],
     },
     {
       id: "friends",
@@ -88,8 +89,14 @@ function buildSteps(splitMethod: SplitMethod): FormStep[] {
       id: "amounts",
       title: "Amounts",
       description:
-        "Set the currency, bill total, any discount, and when payment is due.",
-      fields: ["currency", "totalAmountCents", "discountAmountCents", "dueAt"],
+        "Choose how to split, then enter the bill total and payment details.",
+      fields: [
+        "splitMethod",
+        "currency",
+        "totalAmountCents",
+        "discountAmountCents",
+        "dueAt",
+      ],
     },
   ];
 
@@ -99,8 +106,8 @@ function buildSteps(splitMethod: SplitMethod): FormStep[] {
       title: "Items",
       description:
         splitMethod === "itemized"
-          ? "Required for itemized splits. Add every line item from the receipt."
-          : "Optional. If you add items, the total is calculated from them.",
+          ? "Add the lines you care about. Dump the rest as Others instead of typing the whole receipt."
+          : "Optional. If you add items, they must match the bill total.",
       fields: ["items"],
     });
   }
@@ -109,7 +116,8 @@ function buildSteps(splitMethod: SplitMethod): FormStep[] {
     steps.push({
       id: "assignments",
       title: "Assign items",
-      description: "Distribute every item's quantity across the friends.",
+      description:
+        "Assign the lines you itemized. Send leftover units or Others to everyone else in one tap.",
       fields: ["itemAssignments"],
     });
   }
@@ -118,7 +126,7 @@ function buildSteps(splitMethod: SplitMethod): FormStep[] {
     steps.push({
       id: "percentage",
       title: "Percentage split",
-      description: "Assign a percentage share to each friend.",
+      description: "Assign a percentage share to everyone, including you.",
       fields: ["percentageSplits"],
     });
   }
@@ -229,6 +237,7 @@ export default function SplitForm({
   initialFriendIds,
   onSubmit,
 }: SplitFormProps) {
+  const { data: session } = useSession();
   const { toast } = useToast();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [stepFieldErrors, setStepFieldErrors] = useState<Record<string, string>>(
@@ -346,19 +355,14 @@ export default function SplitForm({
         const isFirstStep = clampedIndex === 0;
         const isLastStep = clampedIndex === steps.length - 1;
 
-        const filledItems = values.items.filter(
-          (item) => item.name.trim() || item.unitPriceCents > 0,
-        );
-        const itemsTotalCents = filledItems.reduce(
-          (sum, item) => sum + Math.round(item.quantity * item.unitPriceCents),
-          0,
-        );
-        const effectiveTotalCents =
-          filledItems.length > 0 ? itemsTotalCents : values.totalAmountCents;
         const netTotalCents = Math.max(
           0,
-          effectiveTotalCents - values.discountAmountCents,
+          values.totalAmountCents - values.discountAmountCents,
         );
+        const currentUserId = session?.user?.id;
+        const participantIds = currentUserId
+          ? [currentUserId, ...values.friendIds.filter((id) => id !== currentUserId)]
+          : values.friendIds;
 
         const fieldError = (fieldName: string, fieldErrors: unknown[]) =>
           resolveFieldError(
@@ -434,17 +438,7 @@ export default function SplitForm({
               ) : null}
 
               {currentStep.id === "details" ? (
-                <>
-                  <form.Field name="splitMethod">
-                    {(field) => (
-                      <SplitMethodField
-                        value={field.state.value}
-                        onChange={field.handleChange}
-                      />
-                    )}
-                  </form.Field>
-
-                  <FormSection>
+                <FormSection>
                     <form.Field name="title">
                       {(field) => (
                         <SplitField
@@ -495,8 +489,7 @@ export default function SplitForm({
                         />
                       )}
                     </form.Field>
-                  </FormSection>
-                </>
+                </FormSection>
               ) : null}
 
               {currentStep.id === "friends" ? (
@@ -514,7 +507,21 @@ export default function SplitForm({
               ) : null}
 
               {currentStep.id === "amounts" ? (
-                <FormSection>
+                <>
+                  <form.Field name="splitMethod">
+                    {(field) => (
+                      <SplitMethodField
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                        error={fieldError(
+                          "splitMethod",
+                          field.state.meta.errors,
+                        )}
+                      />
+                    )}
+                  </form.Field>
+
+                  <FormSection>
                   <form.Field name="currency">
                     {(field) => {
                       const currencyError = fieldError(
@@ -574,26 +581,24 @@ export default function SplitForm({
                     }}
                   </form.Field>
 
-                  {values.splitMethod !== "itemized" ? (
-                    <form.Field name="totalAmountCents">
-                      {(field) => (
-                        <SplitMoneyField
-                          label="Total Amount"
-                          placeholder="0.00"
-                          description="Bill total before discount."
-                          valueCents={field.state.value}
-                          onChangeCents={field.handleChange}
-                          onBlur={field.handleBlur}
-                          error={fieldError(
-                            "totalAmountCents",
-                            field.state.meta.errors,
-                          )}
-                          isRequired
-                          returnKeyType="next"
-                        />
-                      )}
-                    </form.Field>
-                  ) : null}
+                  <form.Field name="totalAmountCents">
+                    {(field) => (
+                      <SplitMoneyField
+                        label="Total Amount"
+                        placeholder="0.00"
+                        description="Bill total before discount. Added items must match it."
+                        valueCents={field.state.value}
+                        onChangeCents={field.handleChange}
+                        onBlur={field.handleBlur}
+                        error={fieldError(
+                          "totalAmountCents",
+                          field.state.meta.errors,
+                        )}
+                        isRequired
+                        returnKeyType="next"
+                      />
+                    )}
+                  </form.Field>
 
                   <form.Field name="discountAmountCents">
                     {(field) => (
@@ -625,7 +630,8 @@ export default function SplitForm({
                       />
                     )}
                   </form.Field>
-                </FormSection>
+                  </FormSection>
+                </>
               ) : null}
 
               {currentStep.id === "items" ? (
@@ -635,6 +641,9 @@ export default function SplitForm({
                       <SplitItemsField
                         value={field.state.value}
                         onChange={field.handleChange}
+                        totalAmountCents={values.totalAmountCents}
+                        currency={values.currency}
+                        allowRemainderShare={values.splitMethod === "itemized"}
                         error={fieldError("items", field.state.meta.errors)}
                         rowErrors={getItemRowErrors(fieldMeta)}
                       />
@@ -649,10 +658,14 @@ export default function SplitForm({
                     {(field) => (
                       <SplitItemAssignmentsField
                         items={values.items}
-                        friendIds={values.friendIds}
+                        friendIds={participantIds}
+                        currentUserId={currentUserId}
                         currency={values.currency}
                         value={field.state.value}
                         onChange={field.handleChange}
+                        onChangeItems={(nextItems) => {
+                          form.setFieldValue("items", nextItems);
+                        }}
                         error={fieldError(
                           "itemAssignments",
                           field.state.meta.errors,
@@ -668,7 +681,8 @@ export default function SplitForm({
                   <form.Field name="percentageSplits">
                     {(field) => (
                       <SplitPercentageField
-                        friendIds={values.friendIds}
+                        friendIds={participantIds}
+                        currentUserId={currentUserId}
                         value={field.state.value}
                         onChange={field.handleChange}
                         error={fieldError(
@@ -686,7 +700,8 @@ export default function SplitForm({
                   <form.Field name="customSplits">
                     {(field) => (
                       <SplitCustomAmountField
-                        friendIds={values.friendIds}
+                        friendIds={participantIds}
+                        currentUserId={currentUserId}
                         currency={values.currency}
                         totalCents={netTotalCents}
                         value={field.state.value}
